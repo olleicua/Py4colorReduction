@@ -49,7 +49,7 @@ class Configuration :
 		"""
 		Use:
 		>>> config = Configuration([Node("a"), Node("b", 7), Node("c", 8)],
-		...                   [("a", "b"), ("a", "c")])
+		...                        [("a", "b"), ("a", "c")])
 		>>> config.getNeighbors(config["a"])
 		[b(7), c(8)]
 		"""
@@ -62,7 +62,18 @@ class Configuration :
 		return result
 
 	def isBoundary(self, node) :
-		return node.degree < len(self.getNeighbors(node))
+		"""
+		Use:
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d"),
+		...                         Node("e"), Node("f")],
+		...                        [("a", "b"), ("a", "c"), ("a", "d"),
+		...                         ("a", "e"), ("a", "f")])
+		>>> config.isBoundary(config["a"])
+		False
+		>>> config.isBoundary(config["b"])
+		True
+		"""
+		return node.degree > len(self.getNeighbors(node))
 	
 if __name__ == "__main__" :
 	import doctest
