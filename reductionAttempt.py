@@ -153,6 +153,7 @@ class Configuration :
 		>>> sorted(config.adjacencyList)
 		[(a_5, b2|), (a_5, b1|), (a_5, b0|), (a_5, b3|), (a_5, b4|), (b2|, b1|), (b2|, b3|), (b1|, b0|), (b3|, b4|), (b4|, b0|)]
 		"""
+		# TODO : find a way to get the "outer neighbors of a node"
 		outerNodes = self.outerNodes()
 		for node in outerNodes :
 			newCount = node.degree - self.apparentDegree(node)
