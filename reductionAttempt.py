@@ -20,6 +20,9 @@ class Node :
 	def __repr__(self) :
 		return "%s_%d" % (self.name, self.degree)
 
+	def __cmp__(self, other) :
+		return cmp(self.name, other.name)
+
 class BoundaryNode :
 	"""
 	A node with unspecified degree for the boundary ring of a configuration.
