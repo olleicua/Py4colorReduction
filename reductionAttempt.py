@@ -87,7 +87,7 @@ class Configuration :
 		# build adjacency list using nodes instead of node names
 		self.adjacencyList = []
 		for nodeA, nodeB in adjacencyList :
-			self.adjacencyList.append(tuple(sorted((self.nodes[nodeA], self.nodes[nodeB]))))
+			self.addEdge(self.nodes[nodeA], self.nodes[nodeB])
 		#
 	def __getitem__(self, name) :
 		return self.nodes[name]

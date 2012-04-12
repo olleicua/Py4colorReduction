@@ -1,5 +1,5 @@
 **********************************************************************
-File "reductionAttempt.py", line 289, in __main__.Configuration.addBoundary
+File "reductionAttempt.py", line 297, in __main__.Configuration.addBoundary
 Failed example:
     sorted(config.adjacencyList)
 Expected:
@@ -7,7 +7,7 @@ Expected:
 Got:
     [(a_5, b1|), (a_5, b0|), (a_5, b2|), (a_5, b3|), (a_5, b4|), (b1|, b0|), (b1|, b2|), (b0|, b4|), (b2|, b3|), (b3|, b4|)]
 **********************************************************************
-File "reductionAttempt.py", line 243, in __main__.Configuration.outerNodeCycle
+File "reductionAttempt.py", line 251, in __main__.Configuration.outerNodeCycle
 Failed example:
     config.outerNodeCycle()
 Exception raised:
@@ -16,7 +16,7 @@ Exception raised:
         compileflags, 1) in test.globs
       File "<doctest __main__.Configuration.outerNodeCycle[7]>", line 1, in <module>
         config.outerNodeCycle()
-      File "reductionAttempt.py", line 276, in outerNodeCycle
+      File "reductionAttempt.py", line 284, in outerNodeCycle
         raise GraphFailedPreconditionError("no outer node cycle found")
     GraphFailedPreconditionError: 'no outer node cycle found'
 **********************************************************************
