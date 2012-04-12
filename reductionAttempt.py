@@ -156,8 +156,8 @@ class Configuration :
 		...                         Node("e"), Node("f")],
 		...                        [("a", "b"), ("a", "c"), ("a", "d"),
 		...                         ("a", "e"), ("a", "f")])
-		>>> sorted(map(lambda n: n.name, config.outerNodes()))
-		['b', 'c', 'd', 'e', 'f']
+		>>> sorted(config.outerNodes())
+		[b_5, c_5, d_5, e_5, f_5]
 		"""
 		result = []
 		for node in sorted(self.nodes.values()) :
