@@ -84,6 +84,18 @@ class Configuration :
 		"""
 		if not tuple(sorted((nodeA, nodeB))) in self.adjacencyList :
 			self.adjacencyList.append(tuple(sorted((nodeA, nodeB))))
+	
+	def isEdge(self, nodeA, nodeB) :
+		"""
+		Use:
+		>>> config = Configuration([Node("a"), Node("b"), Node("c")], [])
+		>>> config.addEdge(config["a"], config["b"])
+		>>> config.isEdge(config["b"], config["a"])
+		True
+		>>> config.isEdge(config["b"], config["c"])
+		False
+		"""
+		return tuple(sorted((nodeA, nodeB))) in self.adjacencyList
 		
 	def getNeighbors(self, node) :
 		"""
