@@ -7,7 +7,13 @@ added test result file.  Generate it with:
 
 """
 
-import itertools
+import itertools, copy
+
+# CONSTANTS #
+
+COLORS = ["R", "B", "G", "Y"]
+
+# CLASSES #
 
 class GraphFailedPreconditionError(Exception) :
 	def __init__(self, value) :
@@ -179,6 +185,16 @@ class Configuration :
 			return True
 		return node.degree > len(self.getNeighbors(node))
 	#
+	def allowedColors(self, node) :
+		"""
+		>>> config = Configuration([Node("a"), Node("b")],
+		...                        [("a", "b")])
+		>>> config["a"].color = "R"
+		>>> sorted(config.allowedColors(config["b"]))
+		['B', 'G', 'Y']
+		"""
+		return set(COLORS) - set(map(lambda node: node.color,
+		                         self.getNeighbors(node)))
 	def outerNodes(self) :
 		"""
 		Return a list of nodes that have currently unspecified edges.
@@ -306,6 +322,12 @@ class Configuration :
 		True
 		>>> len(config.getBoundaryNeighbors(config["c"])) == 3
 		True
+		>>> config = Configuration([Node("a", 6), Node("b")], [("a", "b")])
+		>>> config.addBoundary()
+		>>> len(config.nodes)
+		9
+		>>> len(config.adjacencyList)
+		17
 		"""
 		# add triangulating boundary nodes between each pair in the outer cycle
 		outerCycle = self.outerNodeCycle()
@@ -319,23 +341,61 @@ class Configuration :
 		# add remaining boundary nodes for each outer node
 		for node in outerCycle :
 			#
-			# generate a list of new nodes
+			# determine how many new nodes are needed if any
 			newCount = node.degree - self.apparentDegree(node)
-			newBoundaryNodes = [BoundaryNode() for n in range(newCount)]
-			#
-			# connect new BoundaryNodes to previous triangulating ones
+			assert newCount >= -1, "Node degree too high"
+			# get previously triangulated BoundaryNodes
 			triangleNodes = self.getBoundaryNeighbors(node)
 			assert 0 < len(triangleNodes) <= 2, "Wrong number of BoundaryNodes"
-			self.addEdge(newBoundaryNodes[0], triangleNodes[0])
-			self.addEdge(newBoundaryNodes[-1], triangleNodes[-1])
-			# -1 cleanly handles case of exactly 1 triangleNode
 			#
-			# connect new BoundaryNodes to each other and this Node
-			for newBNi, boundaryNode in enumerate(newBoundaryNodes) :
-				self.nodes[boundaryNode.name] = boundaryNode
-				self.addEdge(boundaryNode, node)
-				if newBNi > 0 :
-					self.addEdge(boundaryNode, newBoundaryNodes[newBNi - 1])
+			# the below conditionals assume the configuration is two-connected
+			if -1 == newCount :
+				 # more edges than degree : merge nodes
+				self.mergeNodes(*triangleNodes)
+				#
+			elif 0 == newCount and 2 == len(triangleNodes) :
+				 # degree satisfied join triangleNodes
+				self.addEdge(*triangleNodes)
+				#
+			else :
+				# generate new BoundaryNodes
+				newBoundaryNodes = [BoundaryNode() for n in range(newCount)]
+				#
+				# connect new BoundaryNodes to previous triangulating ones
+				triangleNodes = self.getBoundaryNeighbors(node)
+				assert 0 < len(triangleNodes) <= 2, \
+					"Too many or too few BoundaryNodes"
+				self.addEdge(newBoundaryNodes[0], triangleNodes[0])
+				self.addEdge(newBoundaryNodes[-1], triangleNodes[-1])
+				# -1 cleanly handles case of exactly 1 triangleNode
+				#
+				# connect new BoundaryNodes to each other and this Node
+				for newBNi, boundaryNode in enumerate(newBoundaryNodes) :
+					self.nodes[boundaryNode.name] = boundaryNode
+					self.addEdge(boundaryNode, node)
+					if newBNi > 0 :
+						self.addEdge(boundaryNode, newBoundaryNodes[newBNi - 1])
+		#
+	def isAreducible(self) :
+		"""
+		Return true if the configuration is A-reducible.
+		 In this case A-reducible means that any valid colorings of the
+		 Boundarynodes allow a valid coloring for the whole configuration
+		 without anything as complex as a Kempe-chain.
+		Use:
+		>>> config = Configuration([Node("a")], [])
+		>>> config.isAreducible()
+		False
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		...                         ("d", "a"), ("b", "d")])
+		>>> config.isAreducible()
+		"??????"
+		"""
+		# make a deep-copy of self to make the api externally functional
+		testConfig = copy.deepcopy(self)
+		# TODO : finish this
+		pass
 
 if __name__ == "__main__" :
 	import doctest
