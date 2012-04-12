@@ -1,3 +1,6 @@
+
+import itertools
+
 class GraphFailedPreconditionError(Exception) :
 	def __init__(self, value) :
 		self.value = value
@@ -161,6 +164,83 @@ class Configuration :
 			if self.isOuter(node) :
 				result.append(node)
 		return result
+
+	def outerNodeCycle(self) :
+		"""
+		Return, roughly, the cycle of nodes that form the edge of the
+		configuration (not the boundary nodes; the "outer" ones).
+
+		Precisely, returns a list of nodes that form a minimal closed
+		walk that traverses each outerNode at least once and traverses
+		no non-outer nodes.
+
+		The result is undefined when no such walk exists; e.g. a large
+		tyre made up of a thick layer of nodes.  Such graphs would
+		have to have two (or more) cycles to count all edge nodes.
+
+		In this list, the first node is not duplicated as the last
+		node.
+
+		>>> config = Configuration([Node("a")], [])
+		>>> config.outerNodeCycle()
+		[a_5]
+
+		>>> config = Configuration([Node("a"), Node("b")],
+		...                        [("a", "b")])
+		>>> config.outerNodeCycle()
+		[a_5, b_5]
+
+		>>> config = Configuration(
+		...                        # A pentagon with centre node.
+		...                        [Node("a"), Node("b"), Node("c"), Node("d"),
+		...                         Node("e"), Node("f")],
+		...                        [("a", "b"), ("a", "c"), ("a", "d"),
+		...                         ("a", "e"), ("a", "f"),
+		...                         ("b", "c"), ("c", "d"), ("d", "e"),
+		...                         ("e", "f"), ("f", "b")])
+		>>> config.outerNodeCycle()
+		[b_5, c_5, d_5, e_5, f_5]
+
+		The length of the list is the sum, over each outer node N, of
+		the number of connected components the graph of "outer nodes"
+		would contain if node N were to be removed.  In other words,
+		chokepoints ("cutvertices") have to be traversed multiple times
+		in order to get to all parts of the graph.  (My intuition
+		claims this, but I have not proved this. --Isaac)
+
+		TODO: The present algorithm is broken for configurations that
+		have a cutvertex.
+		TODO: The present algorithm is factorial time.  This problem
+		is more-or-less to find a Hamiltonian cycle amongst outer
+		nodes.  Finding Hamiltonian cycles is NP-complete.  There's
+		surely an exponential-time algorithm though (which is better
+		than factorial time).
+		"""
+
+		outerNodes = self.outerNodes()
+
+		# special-case for len(outerNodes) == 1
+		# because a node does not have an edge going to itself,
+		# and checking here is faster than checking in consistent().
+		if len(outerNodes) <= 1 :
+			return outerNodes
+
+		def consistent(ordering) :
+			"""
+			Returns True iff all edges in the ordering exist,
+			including last---first.
+			"""
+			for i, nodeA in enumerate(ordering) :
+				# ordering[-1] if i == 0: last node
+				nodeB = ordering[i - 1]
+				if not self.isEdge(nodeA, nodeB) :
+					return False
+			return True
+		
+		for ordering in itertools.permutations(outerNodes) :
+			if consistent(ordering) :
+				return list(ordering)
+		raise GraphFailedPreconditionError("no outer node cycle found")
 	
 	def addBoundary(self) :
 		"""
