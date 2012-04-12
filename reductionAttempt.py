@@ -295,7 +295,7 @@ class Configuration :
 		>>> len(config.getBoundaryNeighbors(config["a"])) == 5
 		True
 		>>> sorted(config.adjacencyList)
-		[(a_5, b2|), (a_5, b1|), (a_5, b0|), (a_5, b3|), (a_5, b4|), (b0|, b1|), (b0|, b4|), (b1|, b2|), (b2|, b3|), (b3|, b4|)]
+		[(a_5, b0|), (a_5, b1|), (a_5, b2|), (a_5, b3|), (a_5, b4|), (b0|, b1|), (b0|, b4|), (b1|, b2|), (b2|, b3|), (b3|, b4|)]
 		
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("a", "c"), ("c", "b")])
