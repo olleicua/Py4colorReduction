@@ -1,0 +1,26 @@
+**********************************************************************
+File "reductionAttempt.py", line 289, in __main__.Configuration.addBoundary
+Failed example:
+    sorted(config.adjacencyList)
+Expected:
+    [(a_5, b2|), (a_5, b1|), (a_5, b0|), (a_5, b3|), (a_5, b4|), (b0|, b1|), (b0|, b4|), (b1|, b2|), (b2|, b3|), (b3|, b4|)]
+Got:
+    [(a_5, b1|), (a_5, b0|), (a_5, b2|), (a_5, b3|), (a_5, b4|), (b1|, b0|), (b1|, b2|), (b0|, b4|), (b2|, b3|), (b3|, b4|)]
+**********************************************************************
+File "reductionAttempt.py", line 243, in __main__.Configuration.outerNodeCycle
+Failed example:
+    config.outerNodeCycle()
+Exception raised:
+    Traceback (most recent call last):
+      File "/System/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/doctest.py", line 1231, in __run
+        compileflags, 1) in test.globs
+      File "<doctest __main__.Configuration.outerNodeCycle[7]>", line 1, in <module>
+        config.outerNodeCycle()
+      File "reductionAttempt.py", line 276, in outerNodeCycle
+        raise GraphFailedPreconditionError("no outer node cycle found")
+    GraphFailedPreconditionError: 'no outer node cycle found'
+**********************************************************************
+2 items had failures:
+   1 of   9 in __main__.Configuration.addBoundary
+   1 of   8 in __main__.Configuration.outerNodeCycle
+***Test Failed*** 2 failures.

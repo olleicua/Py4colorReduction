@@ -1,3 +1,11 @@
+"""
+TODO: add better docs here
+
+added test result file.  Generate it with:
+
+ python reductionAttempt.py > testResults.txt
+
+"""
 
 import itertools
 
@@ -299,8 +307,6 @@ class Configuration :
 		>>> len(config.getBoundaryNeighbors(config["c"])) == 3
 		True
 		"""
-		# TODO : find a way to get the "outer neighbors of a node"
-		#
 		# add triangulating boundary nodes between each pair in the outer cycle
 		outerCycle = self.outerNodeCycle()
 		for cycleI, node in enumerate(outerCycle) :
