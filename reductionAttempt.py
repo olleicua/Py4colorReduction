@@ -32,15 +32,18 @@ class Node :
 	a_5
 	>>> Node("b", 7)
 	b_7
-	>>> Node("c", 0)
+	
+	Removed limit on minimum degree for reduction tests below now this fails
+	
+	- >>> Node("c", 0)
 	Traceback (most recent call last):
 	    ...
 	ValueError: degree must be at least 5
 	"""
 	def __init__(self, name, degree=5) :
 		self.name = name
-		if degree < 5 :
-			raise ValueError("degree must be at least 5")
+		#if degree < 5 :
+		#	raise ValueError("degree must be at least 5")
 		self.degree = degree
 		self.color = None
 		#
@@ -64,6 +67,7 @@ class BoundaryNode :
 		self.name = "b%d|" % self.__class__.count
 		self.__class__.count += 1
 		self.color = None
+		self.colorsTried = []
 		#
 	def __repr__(self) :
 		return self.name
@@ -409,6 +413,33 @@ class Configuration :
 			prev = cur
 			cur = next
 		#
+	def generatePossibleEdgeColorings(self) :
+		"""
+		A generator that produces all possible colorings of the boundary nodes
+		"""
+		cycle = self.getBoundaryCycle()
+		assert len(cycle) >= 2, "Boundary too small"
+		cycle[0].color = COLORS[0]
+		cycle[1].color = COLORS[1]
+		index = 2
+		while True :
+			if index < 2 :
+				break
+			if index >= len(cycle) :
+				yield
+				index -= 1
+				continue
+			colorsToTry = list(set(self.allowedColors(cycle[index])) - \
+											set(cycle[index].colorsTried))
+			if len(colorsToTry) == 0 :
+				cycle[index].color = None
+				cycle[index].colorsTried = []
+				index -= 1
+				continue
+			cycle[index].color = colorsToTry[0]
+			cycle[index].colorsTried.append(colorsToTry[0])
+			index += 1
+		#
 	def isColorable(self) :
 		"""
 		Return True if the is at least one valid coloring of the
@@ -435,14 +466,21 @@ class Configuration :
 		 Boundarynodes allow a valid coloring for the whole configuration
 		 without anything as complex as a Kempe-chain.
 		Use:
+		>>> config = Configuration([Node("a", 3)], [])
+		>>> config.isAreducible()
+		True
 		>>> config = Configuration([Node("a")], [])
+		>>> config.isAreducible()
+		False
+		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
+		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> config.isAreducible()
 		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
 		>>> config.isAreducible()
-		"??????"
+		False
 		"""
 		# make a deep-copy of self to make the api externally functional
 		testConfig = copy.deepcopy(self)
@@ -454,3 +492,4 @@ class Configuration :
 if __name__ == "__main__" :
 	import doctest
 	doctest.testmod()
+
