@@ -409,6 +409,25 @@ class Configuration :
 			prev = cur
 			cur = next
 		#
+	def isColorable(self) :
+		"""
+		Return True if the is at least one valid coloring of the
+		non-boundary nodes.
+		"""
+		uncoloredNodes = [node for node in self.nodes.values()
+						  if node.color == None]
+		if len(uncoloredNodes) == 0 :
+			return True
+		if len(self.allowedColors(uncoloredNodes[0])) == 0 :
+			return False
+		for color in self.allowedColors(uncoloredNodes[0]) :
+			uncoloredNodes[0].color = color
+			if self.isColorable() :
+				uncoloredNodes[0].color = None
+				return True
+		uncoloredNodes[0].color = None
+		return False
+	#
 	def isAreducible(self) :
 		"""
 		Return true if the configuration is A-reducible.
@@ -427,8 +446,10 @@ class Configuration :
 		"""
 		# make a deep-copy of self to make the api externally functional
 		testConfig = copy.deepcopy(self)
-		# TODO : finish this
-		pass
+		for _ in testConfig.generatePossibleEdgeColorings() :
+			if not testConfig.isColorable() :
+				return False
+		return True
 
 if __name__ == "__main__" :
 	import doctest
