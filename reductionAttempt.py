@@ -182,7 +182,7 @@ class Configuration :
 		True
 		"""
 		if isinstance(node, BoundaryNode) :
-			return True
+			return False
 		return node.degree > len(self.getNeighbors(node))
 	#
 	def allowedColors(self, node) :
@@ -326,6 +326,9 @@ class Configuration :
 		>>> config.addBoundary()
 		>>> len(config.nodes)
 		9
+		>>> len(config.adjacencyList)
+		17
+		>>> config.addBoundary()
 		>>> len(config.adjacencyList)
 		17
 		"""
