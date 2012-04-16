@@ -379,6 +379,36 @@ class Configuration :
 					if newBNi > 0 :
 						self.addEdge(boundaryNode, newBoundaryNodes[newBNi - 1])
 		#
+	def getBoundaryCycle(self) :
+		"""
+		Returns a list of the boundary nodes in cyclic order.
+		Automatically adds a boundary if it isn't there already.
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		...                         ("d", "a"), ("b", "d")])
+		>>> len(config.getBoundaryCycle())
+		6
+		>>> len([pair for pair in config.adjacencyList
+		...        if isinstance(pair[0], BoundaryNode) and isinstance(pair[1], BoundaryNode)])
+		6
+		"""
+		self.addBoundary()
+		unorderedBoundaryNodes = [node for node in self.nodes.values() if
+						isinstance(node, BoundaryNode)]
+		if len(unorderedBoundaryNodes) <= 2:
+			return unorderedBoundaryNodes
+		prev = unorderedBoundaryNodes[0]
+		cur = self.getBoundaryNeighbors(prev)[0]
+		result = [prev, cur]
+		while True:
+			a, b = self.getBoundaryNeighbors(cur)
+			next = a if a != prev else b
+			if next == result[0]:
+				return result
+			result.append(next)
+			prev = cur
+			cur = next
+		#
 	def isAreducible(self) :
 		"""
 		Return true if the configuration is A-reducible.
