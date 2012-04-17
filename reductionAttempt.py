@@ -394,7 +394,8 @@ class Configuration :
 			#
 			# the below conditionals assume the configuration is two-connected
 			if -1 == newCount :
-				 # more edges than degree : merge nodes
+				# more edges than degree : merge nodes
+				assert 2 == len(triangleNodes), 'Needing to "merge" 1 node'
 				self.mergeNodes(*triangleNodes)
 				#
 			elif 0 == newCount and 2 == len(triangleNodes) :
