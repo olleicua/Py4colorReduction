@@ -128,6 +128,25 @@ class Configuration :
 		"""
 		return tuple(sorted((nodeA, nodeB))) in self.adjacencyList
 	#
+	def mergeNodes(self, mergeNodeA, mergeNodeB) :
+		"""
+		Merges node B into node A.
+		>>> config = Configuration([Node("a"), Node("b", 7)],
+		...                        [("a", "b")])
+		>>> config.mergeNodes(config.nodes["a"], config.nodes["b"])
+		>>> config.nodes
+		{'a': a_5}
+		>>> config.adjacencyList
+		[]
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"), ("a", "d")])
+		>>> config.mergeNodes(config.nodes["b"], config.nodes["a"])
+		>>> sorted(config.nodes.items())
+		[('b', b_5), ('c', c_5), ('d', d_5)]
+		>>> sorted(config.adjacencyList)
+		[(b_5, c_5), (b_5, d_5), (c_5, d_5)]
+		"""
+	#
 	def getNeighbors(self, node) :
 		"""
 		Use:
