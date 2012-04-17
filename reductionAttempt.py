@@ -451,9 +451,23 @@ class Configuration :
 			prev = cur
 			cur = next
 		#
+	def getEdgeColorings(self) :
+		return map(lambda coloring: map(lambda node: node.color, coloring), \
+				self.generatePossibleEdgeColorings())
 	def generatePossibleEdgeColorings(self) :
 		"""
-		A generator that produces all possible colorings of the boundary nodes
+		A generator that produces all possible colorings of the boundary nodes,
+		modulo renaming of colors.
+		>>> config = Configuration([Node("a", 3)], [])
+		>>> config.getEdgeColorings()
+		[['R', 'B', 'Y'], ['R', 'B', 'G']]
+		>>> config = Configuration([Node("a")], [])
+		>>> map(lambda colors: ''.join(colors), config.getEdgeColorings())
+		['RBYRY', 'RBYRB', 'RBYRG', 'RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBRYB', 'RBRYG', 'RBRBY', 'RBRBG', 'RBRGY', 'RBRGB', 'RBGYB', 'RBGYG', 'RBGRY', 'RBGRB', 'RBGRG', 'RBGBY', 'RBGBG']
+		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
+		...                        [("a", "b"), ("b", "c"), ("a", "c")])
+		>>> config.getEdgeColorings()
+		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		"""
 		cycle = self.getBoundaryCycle()
 		assert len(cycle) >= 2, "Boundary too small"
@@ -464,7 +478,7 @@ class Configuration :
 			if index < 2 :
 				break
 			if index >= len(cycle) :
-				yield
+				yield cycle
 				index -= 1
 				continue
 			colorsToTry = list(set(self.allowedColors(cycle[index])) - \
@@ -477,6 +491,8 @@ class Configuration :
 			cycle[index].color = colorsToTry[0]
 			cycle[index].colorsTried.append(colorsToTry[0])
 			index += 1
+		cycle[0].color = None
+		cycle[1].color = None
 		#
 	def isColorable(self) :
 		"""
