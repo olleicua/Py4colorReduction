@@ -9,6 +9,13 @@ added test result file.  Generate it with:
 
 import itertools, copy
 
+# UTILS #
+
+# from http://stackoverflow.com/questions/2931672/what-is-the-cleanest-way-to-do-a-sort-plus-uniq-on-a-python-list
+def sort_uniq(sequence):
+	"Return a generator of the given values sorted sans duplicates."
+	return (x[0] for x in itertools.groupby(sorted(sequence)))
+
 # CONSTANTS #
 
 COLORS = ["R", "B", "G", "Y"]
@@ -146,6 +153,17 @@ class Configuration :
 		>>> sorted(config.adjacencyList)
 		[(b_5, c_5), (b_5, d_5), (c_5, d_5)]
 		"""
+		def toA(node) :
+			if node == mergeNodeB :
+				return mergeNodeA
+			else :
+				return node
+		renamedAdjacencies = [tuple(sorted((toA(a),toA(b)))) for a, b in self.adjacencyList]
+		# Parallel edges are forbidden:
+		renamedUniqedAdjacencies = list(sort_uniq(renamedAdjacencies))
+		# Loops are forbidden (namely, if there was an edge between A and B) :
+		self.adjacencyList = filter(lambda (a,b): a != b, renamedUniqedAdjacencies)
+		del self.nodes[mergeNodeB.name]
 	#
 	def getNeighbors(self, node) :
 		"""
