@@ -553,6 +553,7 @@ class Configuration :
 	def toDotGraph(self) :
 		"""
 		Returns a text string in GraphViz .dot format.
+		It works pretty well with the 'neato' layout engine.
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> sys.stdout.write(config.toDotGraph())
@@ -577,6 +578,9 @@ class Configuration :
 		"a_5" -- "c_5"
 		"b_5" -- "c_5"
 		}
+		>>> config.addBoundary()
+		>>> config.toDotGraph().count("\\n")
+		30
 		"""
 		results = []
 		results.append('graph {\nnode [style="filled"]\n')
