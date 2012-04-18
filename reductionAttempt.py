@@ -558,9 +558,9 @@ class Configuration :
 		>>> sys.stdout.write(config.toDotGraph())
 		graph {
 		node [style="filled"]
-		"a_5"
-		"b_5"
-		"c_5"
+		"a_5" []
+		"b_5" []
+		"c_5" []
 		"a_5" -- "b_5"
 		"a_5" -- "c_5"
 		"b_5" -- "c_5"
@@ -581,10 +581,10 @@ class Configuration :
 		results = []
 		results.append('graph {\nnode [style="filled"]\n')
 		for node in sorted(self.nodes.values()) :
-			results.append('"%s"' % str(node))
+			opts = []
 			if node.color != None :
-				results.append(' [color="%s"]' % colorToCSSColor(node.color))
-			results.append('\n')
+				opts.append('color="%s"' % colorToCSSColor(node.color))
+			results.append('"%s" [%s]\n' % (str(node), ','.join(opts)))
 		for nodeA, nodeB in sorted(self.adjacencyList) :
 			results.append('"%s" -- "%s"\n' % (str(nodeA), str(nodeB)))
 		results.append("}\n")
