@@ -557,6 +557,14 @@ class Configuration :
 		"b" -- "c"
 		}
 		"""
+		results = []
+		results.append("graph {\n")
+		for node in sorted(self.nodes.values()) :
+			results.append('"%s"\n' % node.name)
+		for nodeA, nodeB in sorted(self.adjacencyList) :
+			results.append('"%s" -- "%s"\n' % (nodeA.name, nodeB.name))
+		results.append("}\n")
+		return ''.join(results)
 
 if __name__ == "__main__" :
 	import doctest
