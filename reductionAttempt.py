@@ -7,7 +7,7 @@ added test result file.  Generate it with:
 
 """
 
-import itertools, copy
+import itertools, copy, sys
 
 # UTILS #
 
@@ -542,6 +542,21 @@ class Configuration :
 			if not testConfig.isColorable() :
 				return False
 		return True
+	def toDotGraph(self) :
+		"""
+		Returns a text string in GraphViz .dot format.
+		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
+		...                        [("a", "b"), ("b", "c"), ("c", "a")])
+		>>> sys.stdout.write(config.toDotGraph())
+		graph {
+		"a"
+		"b"
+		"c"
+		"a" -- "b"
+		"a" -- "c"
+		"b" -- "c"
+		}
+		"""
 
 if __name__ == "__main__" :
 	import doctest
