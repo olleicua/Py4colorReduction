@@ -525,7 +525,7 @@ class Configuration :
 		for node in self.nodes.values() :
 			node.color = None
 	#
-	def isAreducible(self) :
+	def isAreducible(self, retainImpossibleColoring = False) :
 		"""
 		Return true if the configuration is A-reducible.
 		 In this case A-reducible means that any valid colorings of the
@@ -549,7 +549,7 @@ class Configuration :
 		False
 		"""
 		# make a deep-copy of self to make the api externally functional
-		testConfig = copy.deepcopy(self)
+		testConfig = self if retainImpossibleColoring else copy.deepcopy(self)
 		for _ in testConfig.generatePossibleEdgeColorings() :
 			if not testConfig.isColorable() :
 				return False
