@@ -19,6 +19,13 @@ def sort_uniq(sequence):
 # CONSTANTS #
 
 COLORS = ["R", "B", "G", "Y"]
+def colorToCSSColor(colorID) :
+	if colorID == None: return None
+	elif colorID == "R": return "#ff0000"
+	elif colorID == "G": return "#00ff00"
+	elif colorID == "B": return "#0000ff"
+	elif colorID == "Y": return "#ffff00"
+	else: raise ValueError("Invalid color")
 
 # CLASSES #
 
@@ -494,7 +501,7 @@ class Configuration :
 		cycle[0].color = None
 		cycle[1].color = None
 		#
-	def isColorable(self) :
+	def isColorable(self, retainTheValidColoring = False) :
 		"""
 		Return True if the is at least one valid coloring of the
 		non-boundary nodes.
@@ -507,8 +514,9 @@ class Configuration :
 			return False
 		for color in self.allowedColors(uncoloredNodes[0]) :
 			uncoloredNodes[0].color = color
-			if self.isColorable() :
-				uncoloredNodes[0].color = None
+			if self.isColorable(retainTheValidColoring) :
+				if not retainTheValidColoring:
+					uncoloredNodes[0].color = None
 				return True
 		uncoloredNodes[0].color = None
 		return False
@@ -549,20 +557,36 @@ class Configuration :
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> sys.stdout.write(config.toDotGraph())
 		graph {
-		"a"
-		"b"
-		"c"
-		"a" -- "b"
-		"a" -- "c"
-		"b" -- "c"
+		node [style="filled"]
+		"a_5"
+		"b_5"
+		"c_5"
+		"a_5" -- "b_5"
+		"a_5" -- "c_5"
+		"b_5" -- "c_5"
+		}
+		>>> config.isColorable(True)
+		True
+		>>> sys.stdout.write(config.toDotGraph())
+		graph {
+		node [style="filled"]
+		"a_5" [color="#ffff00"]
+		"b_5" [color="#0000ff"]
+		"c_5" [color="#ff0000"]
+		"a_5" -- "b_5"
+		"a_5" -- "c_5"
+		"b_5" -- "c_5"
 		}
 		"""
 		results = []
-		results.append("graph {\n")
+		results.append('graph {\nnode [style="filled"]\n')
 		for node in sorted(self.nodes.values()) :
-			results.append('"%s"\n' % node.name)
+			results.append('"%s"' % str(node))
+			if node.color != None :
+				results.append(' [color="%s"]' % colorToCSSColor(node.color))
+			results.append('\n')
 		for nodeA, nodeB in sorted(self.adjacencyList) :
-			results.append('"%s" -- "%s"\n' % (nodeA.name, nodeB.name))
+			results.append('"%s" -- "%s"\n' % (str(nodeA), str(nodeB)))
 		results.append("}\n")
 		return ''.join(results)
 
