@@ -405,9 +405,11 @@ class Configuration :
 				assert 2 == len(triangleNodes), 'Needing to "merge" 1 node'
 				self.mergeNodes(*triangleNodes)
 				#
-			elif 0 == newCount and 2 == len(triangleNodes) :
-				 # degree satisfied join triangleNodes
-				self.addEdge(*triangleNodes)
+			elif 0 == newCount :
+				# degree satisfied; join triangleNodes
+				# (if they're distinct nodes)
+				if 2 == len(triangleNodes) :
+					self.addEdge(*triangleNodes)
 				#
 			else :
 				# generate new BoundaryNodes
@@ -440,6 +442,21 @@ class Configuration :
 		>>> len([pair for pair in config.adjacencyList
 		...        if isinstance(pair[0], BoundaryNode) and isinstance(pair[1], BoundaryNode)])
 		6
+		>>> config = Configuration([Node("a", 4)], [])
+		>>> len(config.getBoundaryCycle())
+		4
+		>>> config = Configuration([Node("a", 3)], [])
+		>>> len(config.getBoundaryCycle())
+		3
+		>>> config = Configuration([Node("a", 2)], [])
+		>>> len(config.getBoundaryCycle())
+		2
+		>>> config = Configuration([Node("a", 1)], [])
+		>>> len(config.getBoundaryCycle())
+		1
+		>>> config = Configuration([Node("a", 0)], [])
+		>>> len(config.getBoundaryCycle())
+		0
 		"""
 		self.addBoundary()
 		unorderedBoundaryNodes = [node for node in self.nodes.values() if
