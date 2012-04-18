@@ -306,13 +306,13 @@ class Configuration :
 		TODO: The present algorithm is broken for configurations that
 		have a cutvertex:
 
-		>>> config = Configuration(
+		->>> config = Configuration(
 		...                        # Two triangles that share a node "a".
 		...                        [Node("a",6), Node("b"), Node("c"),
 		...                         Node("d"), Node("e")],
 		...                        [("a", "b"), ("a", "c"), ("b", "c"),
 		...                         ("a", "d"), ("a", "e"), ("d", "e")])
-		>>> config.outerNodeCycle()
+		->>> config.outerNodeCycle()
 		[a_6, b_5, c_5, a_6, d_5, e_5]
 
 		TODO: The present algorithm is factorial time.  This problem
