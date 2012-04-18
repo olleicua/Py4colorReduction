@@ -35,9 +35,6 @@ class GraphFailedPreconditionError(Exception) :
 		#
 	def __str__(self) :
 		return repr(self.value)
-	#
-	def __cmp__(self, other) :
-		return cmp(self.name, other.name)
 
 class Node :
 	"""
@@ -414,7 +411,7 @@ class Configuration :
 				#
 			else :
 				# generate new BoundaryNodes
-				newBoundaryNodes = [BoundaryNode() for n in range(newCount)]
+				newBoundaryNodes = [BoundaryNode() for _ in range(newCount)]
 				#
 				# connect new BoundaryNodes to previous triangulating ones
 				triangleNodes = self.getBoundaryNeighbors(node)
