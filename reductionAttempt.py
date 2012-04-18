@@ -521,6 +521,10 @@ class Configuration :
 		uncoloredNodes[0].color = None
 		return False
 	#
+	def clearColoring(self) :
+		for node in self.nodes.values() :
+			node.color = None
+	#
 	def isAreducible(self) :
 		"""
 		Return true if the configuration is A-reducible.
