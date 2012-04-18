@@ -302,6 +302,29 @@ class Configuration :
 		chokepoints ("cutvertices") have to be traversed multiple times
 		in order to get to all parts of the graph.  (My intuition
 		claims this, but I have not proved this. --Isaac)
+
+		There exists no correct answer for blobs of nodes whose plane
+		representation has at least two separate "outer" regions,
+		such as an annulus (ring, tire, etc).
+		>>> config = Configuration(
+		...              [Node("a",7), Node("b",7), Node("c",7), #outer ring
+		...               Node("d",6), Node("e",6), Node("f",6), #non-outer
+		...               Node("g",7), Node("h",7), Node("i",7)],#inner outer
+		...              [ #each ring
+		...               ("a", "b"), ("b", "c"), ("c", "a"),
+		...               ("d", "e"), ("e", "f"), ("f", "d"),
+		...               ("g", "h"), ("h", "i"), ("i", "g"),
+		...                #interconnections outer--non-outer
+		...               ("a", "d"), ("a", "e"), ("b", "e"),
+		...               ("b", "f"), ("c", "f"), ("c", "d"),
+		...                #interconnections non-outer--"inner"
+		...               ("g", "d"), ("g", "e"), ("h", "e"),
+		...               ("h", "f"), ("i", "f"), ("i", "d")])
+		>>> config.outerNodeCycle()
+		Traceback (most recent call last):
+		    ...
+		GraphFailedPreconditionError: 'no outer node cycle found'
+		
 		
 		TODO: The present algorithm is broken for configurations that
 		have a cutvertex:
