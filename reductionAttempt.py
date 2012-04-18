@@ -85,6 +85,9 @@ class BoundaryNode :
 		#
 	def __repr__(self) :
 		return self.name
+	#
+	def __cmp__(self, other) :
+		return cmp(self.name, other.name)
 	
 class Configuration :
 	"""
