@@ -286,15 +286,15 @@ class Configuration :
 		[a_5, b_5]
 		
 		>>> config = Configuration(
-		...                        # A pentagon with centre node.
-		...                        [Node("a"), Node("b"), Node("c"), Node("d"),
+		...                        # A pentagon with centre node "a".
+		...                        [Node("a"), Node("b"), Node("q"), Node("d"),
 		...                         Node("e"), Node("f")],
-		...                        [("a", "b"), ("a", "c"), ("a", "d"),
+		...                        [("a", "b"), ("a", "q"), ("a", "d"),
 		...                         ("a", "e"), ("a", "f"),
-		...                         ("b", "c"), ("c", "d"), ("d", "e"),
+		...                         ("b", "q"), ("q", "d"), ("d", "e"),
 		...                         ("e", "f"), ("f", "b")])
 		>>> config.outerNodeCycle()
-		[b_5, c_5, d_5, e_5, f_5]
+		[b_5, f_5, e_5, d_5, q_5]
 		
 		The length of the list is the sum, over each outer node N, of
 		the number of connected components the graph of "outer nodes"
