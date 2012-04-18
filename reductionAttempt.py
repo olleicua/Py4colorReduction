@@ -379,6 +379,13 @@ class Configuration :
 		>>> config.addBoundary()
 		>>> len(config.adjacencyList)
 		17
+		>>> config = Configuration([Node("a", 3), Node("b"), Node("c")],
+		...                        [("a", "b"), ("b", "c"), ("a", "c")])
+		>>> config.addBoundary()
+		>>> len(config.nodes)
+		7
+		>>> len(config.adjacencyList)
+		14
 		"""
 		# add triangulating boundary nodes between each pair in the outer cycle
 		outerCycle = self.outerNodeCycle()
