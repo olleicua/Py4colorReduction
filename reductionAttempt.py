@@ -505,22 +505,22 @@ class Configuration :
 			prev = cur
 			cur = next
 		#
-	def getEdgeColorings(self) :
+	def getBoundaryColorings(self) :
 		return map(lambda coloring: map(lambda node: node.color, coloring), \
-				self.generatePossibleEdgeColorings())
-	def generatePossibleEdgeColorings(self) :
+				self.generatePossibleBoundaryColorings())
+	def generatePossibleBoundaryColorings(self) :
 		"""
 		A generator that produces all possible colorings of the boundary nodes,
 		modulo renaming of colors.
 		>>> config = Configuration([Node("a", 3)], [])
-		>>> config.getEdgeColorings()
+		>>> config.getBoundaryColorings()
 		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		>>> config = Configuration([Node("a")], [])
-		>>> map(lambda colors: ''.join(colors), config.getEdgeColorings())
+		>>> map(lambda colors: ''.join(colors), config.getBoundaryColorings())
 		['RBYRY', 'RBYRB', 'RBYRG', 'RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBRYB', 'RBRYG', 'RBRBY', 'RBRBG', 'RBRGY', 'RBRGB', 'RBGYB', 'RBGYG', 'RBGRY', 'RBGRB', 'RBGRG', 'RBGBY', 'RBGBG']
 		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
-		>>> config.getEdgeColorings()
+		>>> config.getBoundaryColorings()
 		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		"""
 		cycle = self.getBoundaryCycle()
@@ -597,7 +597,7 @@ class Configuration :
 		"""
 		# make a deep-copy of self to make the api externally functional
 		testConfig = self if retainImpossibleColoring else copy.deepcopy(self)
-		for _ in testConfig.generatePossibleEdgeColorings() :
+		for _ in testConfig.generatePossibleBoundaryColorings() :
 			if not testConfig.isColorable() :
 				return False
 		return True
