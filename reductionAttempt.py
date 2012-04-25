@@ -18,7 +18,7 @@ def sort_uniq(sequence):
 
 # CONSTANTS #
 
-COLORS = ["R", "B", "G", "Y"]
+COLORS = ["R", "G", "B", "Y"]
 def colorToCSSColor(colorID) :
 	if colorID == None: return None
 	elif colorID == "R": return "#ff0000"
@@ -514,14 +514,14 @@ class Configuration :
 		modulo renaming of colors.
 		>>> config = Configuration([Node("a", 3)], [])
 		>>> config.getBoundaryColorings()
-		[['R', 'B', 'Y'], ['R', 'B', 'G']]
+		[['R', 'G', 'Y'], ['R', 'G', 'B']]
 		>>> config = Configuration([Node("a")], [])
-		>>> map(lambda colors: ''.join(colors), config.getBoundaryColorings())
-		['RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBGYB', 'RBGYG', 'RBGBY', 'RBGBG']
+		>>> sorted(map(lambda colors: ''.join(colors), config.getBoundaryColorings()))
+		['RGBGB', 'RGBGY', 'RGBYB', 'RGBYG', 'RGYBG', 'RGYBY', 'RGYGB', 'RGYGY']
 		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
 		>>> config.getBoundaryColorings()
-		[['R', 'B', 'Y'], ['R', 'B', 'G']]
+		[['R', 'G', 'Y'], ['R', 'G', 'B']]
 		"""
 		cycle = self.getBoundaryCycle()
 		assert len(cycle) >= 2, "Boundary too small"
