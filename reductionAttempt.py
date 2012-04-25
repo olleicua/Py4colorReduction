@@ -517,7 +517,7 @@ class Configuration :
 		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		>>> config = Configuration([Node("a")], [])
 		>>> map(lambda colors: ''.join(colors), config.getBoundaryColorings())
-		['RBYRY', 'RBYRB', 'RBYRG', 'RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBRYB', 'RBRYG', 'RBRBY', 'RBRBG', 'RBRGY', 'RBRGB', 'RBGYB', 'RBGYG', 'RBGRY', 'RBGRB', 'RBGRG', 'RBGBY', 'RBGBG']
+		['RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBGYB', 'RBGYG', 'RBGBY', 'RBGBG']
 		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
 		>>> config.getBoundaryColorings()
@@ -535,8 +535,16 @@ class Configuration :
 				yield cycle
 				index -= 1
 				continue
-			colorsToTry = list(set(self.allowedColors(cycle[index])) - \
-											set(cycle[index].colorsTried))
+			# We subtract COLORS[0] because the smaller map we
+			# are imagining (arbitrarily, for our convenience),
+			# in addition to having none of the nodes in the
+			# main configuration,
+			# has edges from cycle[0] to every other node in
+			# cycle (the boundary cycle).
+			colorsToTry = list( \
+				set(self.allowedColors(cycle[index])) - \
+					set(cycle[index].colorsTried) - \
+					set(COLORS[0]) )
 			if len(colorsToTry) == 0 :
 				cycle[index].color = None
 				cycle[index].colorsTried = []
