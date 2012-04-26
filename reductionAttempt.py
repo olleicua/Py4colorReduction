@@ -654,7 +654,10 @@ class Configuration :
 						newKempeGroups[n] = idToJoin
 					newNumKempeChainsOfMoreThanOne += 1
 				newKempeGroup = [n for n in range(0,i+1) if newKempeGroups[n] == idToJoin]
-				newlyOccluded = range(min(newKempeGroup)+1, max(newKempeGroup))
+				newlyOccluded = range(min(newKempeGroup)+1,
+				                      max(filter(lambda x: x <= i, newKempeGroup)))
+				                      # filter in case [len(cycle)-1, 0] were already connected
+				                      # due to being the same color when node 0 was checked
 				newOccludedSet |= set(newlyOccluded)
 				tryNext(i + 1, newKempeGroups, newNumKempeChainsOfMoreThanOne, newOccludedSet)
 			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
