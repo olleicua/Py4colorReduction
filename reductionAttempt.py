@@ -609,6 +609,8 @@ class Configuration :
 		# nested function
 		def tryNext(i, kempeGroupsSoFar, numKempeChainsSoFar, occludedSet) :
 			"""
+			Recursively look for kempe grouping possibilities for each of the
+			 remaining nodes in the cycle.
 			kempeGroupsSoFar:
 				This is a dictionary from 'cycle'-index (integer) to
 				kempe-chain-index (integer) that contains a non-strict subset
