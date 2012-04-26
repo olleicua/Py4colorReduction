@@ -16,6 +16,14 @@ def sort_uniq(sequence):
 	"Return a generator of the given values sorted sans duplicates."
 	return (x[0] for x in itertools.groupby(sorted(sequence)))
 
+# from http://docs.python.org/library/itertools.html#recipes
+def powerset(iterable):
+	"powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+	s = list(iterable)
+	return itertools.chain.from_iterable(
+			itertools.combinations(s, r) for r in range(len(s)+1))
+
+
 # CONSTANTS #
 
 COLORS = ["R", "G", "B", "Y"]
@@ -556,6 +564,111 @@ class Configuration :
 		cycle[0].color = None
 		cycle[1].color = None
 		#
+	def generatePossibleKempeChainConnectivitySets(self, colorPair) :
+		"""
+		Automatically adds a boundary if it isn't there already.
+		Results in a large number of sets like, if there are five
+		boundary nodes a-e, perhaps
+		->>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		-...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		-...                         ("d", "a"), ("b", "d")])
+		>>> config = Configuration([Node("a", 4)], [])
+		>>> for coloring in config.generatePossibleBoundaryColorings():
+		...     print [node.color for node in coloring], ":"
+		...     r,g,b,y = COLORS
+		...     print r+g+'/'+b+y+':', \
+		            config.generatePossibleKempeChainConnectivitySets((r, g))
+		...     print r+b+'/'+g+y+':', \
+		            config.generatePossibleKempeChainConnectivitySets((r, b))
+		...     print r+y+'/'+g+b+':', \
+		            config.generatePossibleKempeChainConnectivitySets((r, y))
+		..yeah.
+
+		[set([a, c]), set([b]), set([d, e])]
+		{a: 0, b: 1, c: 0, d: 2, e: 2}
+		{a: set([a, c]), b: set([b]), c: set([a, c]), d: set([d, e]), e: set([d, e])}
+		: a list of one of those.
+		
+		each of which (for the given pair of pair of colors)
+		is in this possibility Kempe-chain-connected and thus
+		can have its two colors exchanged anytime.
+		...i'll just make it return a list and check whether it gets too large. simpler coding.
+		"""
+		colorPair1 = set(colorPair)
+		colorPair2 = set(COLORS) - colorPair1
+		def whichColorPair(color) :
+			"""Returns a value comparable for equality which determines
+			   an equivalence class between colors."""
+			return color in colorPair1
+		assert len(colorPair1) == 2 and len(colorPair2) == 2, \
+				"Kempe chains work with pairs of colors"
+		cycle = self.getBoundaryCycle()
+		result = []
+		def tryNext(i, kempeGroupsSoFar, numKempeChainsOfMoreThanOne, occludedSet) :
+			"""
+			kempeGroupsSoFar:
+				This is a dictionary from 'cycle'-index (integer) to
+				kempe-chain-index (integer) that contains a non-strict subset
+				of range(0,i) in keys and in values contains each of
+				range(0,numKempeChainsOfMoreThanOne) at least once.
+			numKempeChainsOfMoreThanOne:
+				This integer just counts the number of Kempe chains we've named.
+			occludedSet: Set of 'cycle'-indices of nodes we've seen for which
+				there is a kempe chain we've seen that's attached to
+				at least one node before and one node after the occluded node.
+				Any new node we look at, since we look at them in order,
+				will not be able to attach to it in a kempe chain (except
+				possibly by attaching to one of those before or after nodes,
+				which we allow when possible, i.e., when they themselves are
+				not occluded by yet another chain).
+			"""
+			if i == len(cycle) :
+				result.append(kempeGroupsSoFar)
+				return
+			def joinInKempeChainAndRecur(kempeChainPiece) :
+				"""
+				kempeChainPiece:
+					a list of 'cycle'-indices to join together and possibly
+					to another chain if they meet exactly one other chain.
+				"""
+				newKempeGroups = copy.copy(kempeGroupsSoFar)
+				newOccludedSet = copy.copy(occludedSet)
+				newNumKempeChainsOfMoreThanOne = copy.copy(numKempeChainsOfMoreThanOne)
+				existingKempeGroupIDsAttachedTo = [kempeGroupsSoFar[n]
+					for n in kempeChainPiece if n in kempeGroupsSoFar]
+				if len(existingKempeGroupIDsAttachedTo) >= 2 :
+					#it's redundant with a higher-level iteration that
+					#would have chosen to join those two groups already,
+					#so don't also check it now.
+					#(Also, this would require renumbering existing groups,
+					#which could be done but it's nice that we can avoid.)
+					return
+				elif len(existingKempeGroupIDsAttachedTo) == 1 :
+					idToJoin = existingKempeGroupIDsAttachedTo[0]
+					for n in kempeChainPiece:
+						newKempeGroups[n] = idToJoin
+				#else new kempe group
+				else:
+					idToJoin = numKempeChainsOfMoreThanOne
+					for n in kempeChainPiece:
+						newKempeGroups[n] = idToJoin
+					newNumKempeChainsOfMoreThanOne += 1
+				newKempeGroup = [n for n in range(0,i+1) if newKempeGroups[n] == idToJoin]
+				newlyOccluded = range(min(newKempeGroup)+1, max(newKempeGroup))
+				newOccludedSet |= set(newlyOccluded)
+				tryNext(i + 1, newKempeGroups, newNumKempeChainsOfMoreThanOne, newOccludedSet)
+			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
+				joinInKempeChainAndRecur([i, (i - 1) % len(cycle)])
+			else :
+				for kempeChainPiece in [olds+(i,) for olds in powerset(
+					               [n for n in range(0, i)
+					                 if n not in occludedSet and
+					                  whichColorPair(cycle[n].color) ==
+					                  whichColorPair(cycle[i].color)] )] :
+					joinInKempeChainAndRecur(kempeChainPiece)
+		tryNext(0, {}, 0, set())
+		return result
+	#
 	def isColorable(self, retainTheValidColoring = False) :
 		"""
 		Return True if the is at least one valid coloring of the
