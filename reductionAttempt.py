@@ -605,14 +605,16 @@ class Configuration :
 				"Kempe chains work with pairs of colors"
 		cycle = self.getBoundaryCycle()
 		result = []
-		def tryNext(i, kempeGroupsSoFar, numKempeChainsOfMoreThanOne, occludedSet) :
+		#
+		# nested function
+		def tryNext(i, kempeGroupsSoFar, numKempeChainsSoFar, occludedSet) :
 			"""
 			kempeGroupsSoFar:
 				This is a dictionary from 'cycle'-index (integer) to
 				kempe-chain-index (integer) that contains a non-strict subset
 				of range(0,i) in keys and in values contains each of
-				range(0,numKempeChainsOfMoreThanOne) at least once.
-			numKempeChainsOfMoreThanOne:
+				range(0,numKempeChainsSoFar) at least once.
+			numKempeChainsSoFar:
 				This integer just counts the number of Kempe chains we've named.
 			occludedSet: Set of 'cycle'-indices of nodes we've seen for which
 				there is a kempe chain we've seen that's attached to
@@ -626,6 +628,8 @@ class Configuration :
 			if i == len(cycle) :
 				result.append(kempeGroupsSoFar)
 				return
+			#
+			# sub-nested function
 			def joinInKempeChainAndRecur(kempeChainPiece) :
 				"""
 				kempeChainPiece:
@@ -634,7 +638,7 @@ class Configuration :
 				"""
 				newKempeGroups = copy.copy(kempeGroupsSoFar)
 				newOccludedSet = copy.copy(occludedSet)
-				newNumKempeChainsOfMoreThanOne = copy.copy(numKempeChainsOfMoreThanOne)
+				newNumKempeChainsSoFar = copy.copy(numKempeChainsSoFar)
 				existingKempeGroupIDsAttachedTo = [kempeGroupsSoFar[n]
 					for n in kempeChainPiece if n in kempeGroupsSoFar]
 				if len(existingKempeGroupIDsAttachedTo) >= 2 :
@@ -650,17 +654,17 @@ class Configuration :
 						newKempeGroups[n] = idToJoin
 				#else new kempe group
 				else:
-					idToJoin = numKempeChainsOfMoreThanOne
+					idToJoin = numKempeChainsSoFar
 					for n in kempeChainPiece:
 						newKempeGroups[n] = idToJoin
-					newNumKempeChainsOfMoreThanOne += 1
+					newNumKempeChainsSoFar += 1
 				newKempeGroup = [n for n in range(0,i+1) if newKempeGroups[n] == idToJoin]
 				newlyOccluded = range(min(newKempeGroup)+1,
 				                      max(filter(lambda x: x <= i, newKempeGroup)))
 				                      # filter in case [len(cycle)-1, 0] were already connected
 				                      # due to being the same color when node 0 was checked
 				newOccludedSet |= set(newlyOccluded)
-				tryNext(i + 1, newKempeGroups, newNumKempeChainsOfMoreThanOne, newOccludedSet)
+				tryNext(i + 1, newKempeGroups, newNumKempeChainsSoFar, newOccludedSet)
 			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
 				joinInKempeChainAndRecur([i, (i - 1) % len(cycle)])
 			else :
