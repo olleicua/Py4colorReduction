@@ -605,7 +605,8 @@ class Configuration :
 				"Kempe chains work with pairs of colors"
 		cycle = self.getBoundaryCycle()
 		result = []
-		#
+		def weFoundAResult(kempeChains) :
+			result.append(kempeChains)
 		# nested function; recursive
 		def tryNext(i, kempeChainsSoFar, numKempeChainsSoFar, occludedSet) :
 			"""
@@ -618,7 +619,8 @@ class Configuration :
 			kempeChainsSoFar:
 				This is a dictionary from 'cycle'-index (integer) to
 				kempe-chain-index (integer) that contains keys range(0,i)
-				plus possibly len(cycle)-1, and values contains each of
+				(plus possibly range(n,len(cycle)) for some n due to
+				"horrible corner case"), and its values contains each of
 				range(0,numKempeChainsSoFar) at least once.
 			numKempeChainsSoFar:
 				This integer just counts the number of Kempe chains we've named.
@@ -632,63 +634,54 @@ class Configuration :
 				not occluded by yet another chain).
 			"""
 			if i == len(cycle) :
-				result.append(kempeChainsSoFar)
+				weFoundAResult(kempeChainsSoFar)
 				return
 			#
 			# sub-nested function
-			def joinInKempeChainAndRecur(kempeChainPiece) :
-				"""
-				kempeChainPiece:
-					a list of 'cycle'-indices to join together and possibly
-					to another chain if they meet exactly one other chain.
-				"""
-				newKempeChains = copy.copy(kempeChainsSoFar)
+			def joinKempeChainAndRecur(kempeChainID) :
+				newKempeChainsSoFar = copy.copy(kempeChainsSoFar)
 				newOccludedSet = copy.copy(occludedSet)
-				newNumKempeChainsSoFar = copy.copy(numKempeChainsSoFar)
-				existingKempeChainIDsAttachedTo = [kempeChainsSoFar[n]
-					for n in kempeChainPiece if n in kempeChainsSoFar]
-				if len(existingKempeChainIDsAttachedTo) >= 2 :
-					#it's redundant with a higher-level iteration that
-					#would have chosen to join those two groups already,
-					#so don't also check it now.
-					#(Also, this would require renumbering existing groups,
-					#which could be done but it's nice that we can avoid.)
-					return
-				elif len(existingKempeChainIDsAttachedTo) == 1 :
-					idToJoin = existingKempeChainIDsAttachedTo[0]
-					for n in kempeChainPiece:
-						newKempeChains[n] = idToJoin
-				#else new kempe group
-				else:
-					idToJoin = numKempeChainsSoFar
-					for n in kempeChainPiece:
-						newKempeChains[n] = idToJoin
-					newNumKempeChainsSoFar += 1
-				newKempeChain = [n for n in range(0,i+1) if newKempeChains[n] == idToJoin]
-				newlyOccluded = range(min(newKempeChain)+1,
-				                      max(filter(lambda x: x <= i, newKempeChain)))
-				                      # filter in case [len(cycle)-1, 0] were already connected
-				                      # due to being the same color when node 0 was checked
+				newKempeChainsSoFar[i] = kempeChainID
+				newKempeChain = [n for n in newKempeChainsSoFar.keys() \
+				                         if newKempeChainsSoFar[n] == kempeChainID ]
+				newlyOccluded = range(min(newKempeChain)+1, i)
 				newOccludedSet |= set(newlyOccluded)
-				tryNext(i + 1, newKempeChains, newNumKempeChainsSoFar, newOccludedSet)
+				tryNext(i + 1, newKempeChainsSoFar, numKempeChainsSoFar, newOccludedSet)
 			#
 			# end sub-nested function: tryNext
 			#
-			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
-				joinInKempeChainAndRecur([i, (i - 1) % len(cycle)])
+			if i in kempeChainsSoFar :
+				# finish dealing with the horrible corner case mentioned below
+				weFoundAResult(kempeChainsSoFar)
+			elif whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
+				prevNodeIndex = (i - 1) % len(cycle)
+				prevNodeKempeChain = kempeChainsSoFar[prevNodeIndex]
+				joinKempeChainAndRecur(prevNodeKempeChain)
 			else :
 				priorNodesThatWeCanConnectTo = \
 					       [n for n in range(0, i) \
 						 if n not in occludedSet and \
 						  whichColorPair(cycle[n].color) == \
 						  whichColorPair(cycle[i].color)]
-				for kempeChainPiece in [olds+(i,) for olds in
-						powerset(priorNodesThatWeCanConnectTo)] :
-					joinInKempeChainAndRecur(kempeChainPiece)
+				kempeChainIDsThatWeCanConnectTo = list(set([ \
+					kempeChainsSoFar[n] for n in priorNodesThatWeCanConnectTo]))
+				#
+				for kempeChainID in kempeChainIDsThatWeCanConnectTo:
+					joinKempeChainAndRecur(kempeChainID)
+				newSingletonKempeChainID = numKempeChainsSoFar
+				numKempeChainsSoFar += 1
+				joinKempeChainAndRecur(newSingletonKempeChainID)
 		#
 		# end nested function: joinInKempeChainAndRecur
 		#
-		tryNext(0, {}, 0, set())
+		startingKempeChains = {0: 0}
+		# Deal with a horrible corner case:
+		for i in reversed(xrange(len(cycle))) :
+			if whichColorPair(cycle[i].color) == whichColorPair(cycle[0].color) :
+				startingKempeChains[i] = 0
+			else:
+				break
+		tryNext(1, startingKempeChains, 1, set())
 		return result
 	#
 	def isColorable(self, retainTheValidColoring = False) :
