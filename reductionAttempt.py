@@ -677,11 +677,13 @@ class Configuration :
 			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
 				joinInKempeChainAndRecur([i, (i - 1) % len(cycle)])
 			else :
-				for kempeChainPiece in [olds+(i,) for olds in powerset(
-					               [n for n in range(0, i)
-					                 if n not in occludedSet and
-					                  whichColorPair(cycle[n].color) ==
-					                  whichColorPair(cycle[i].color)] )] :
+				priorNodesThatWeCanConnectTo = \
+					       [n for n in range(0, i) \
+						 if n not in occludedSet and \
+						  whichColorPair(cycle[n].color) == \
+						  whichColorPair(cycle[i].color)]
+				for kempeChainPiece in [olds+(i,) for olds in
+						powerset(priorNodesThatWeCanConnectTo)] :
 					joinInKempeChainAndRecur(kempeChainPiece)
 		#
 		# end nested function: joinInKempeChainAndRecur
