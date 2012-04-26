@@ -671,6 +671,9 @@ class Configuration :
 				                      # due to being the same color when node 0 was checked
 				newOccludedSet |= set(newlyOccluded)
 				tryNext(i + 1, newKempeChains, newNumKempeChainsSoFar, newOccludedSet)
+			#
+			# end sub-nested function: tryNext
+			#
 			if whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
 				joinInKempeChainAndRecur([i, (i - 1) % len(cycle)])
 			else :
@@ -680,6 +683,9 @@ class Configuration :
 					                  whichColorPair(cycle[n].color) ==
 					                  whichColorPair(cycle[i].color)] )] :
 					joinInKempeChainAndRecur(kempeChainPiece)
+		#
+		# end nested function: joinInKempeChainAndRecur
+		#
 		tryNext(0, {}, 0, set())
 		return result
 	#
