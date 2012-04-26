@@ -530,6 +530,7 @@ class Configuration :
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
 		>>> config.getBoundaryColorings()
 		[['R', 'G', 'Y'], ['R', 'G', 'B']]
+
 		"""
 		cycle = self.getBoundaryCycle()
 		assert len(cycle) >= 2, "Boundary too small"
@@ -600,7 +601,7 @@ class Configuration :
 			"""Returns a value comparable for equality which determines
 			   an equivalence class between colors."""
 			return color in colorPair1
-		assert len(colorPair1) == 2 and len(colorPair2) == 2, \
+		assert len(colorPair1) == len(colorPair2) == 2, \
 				"Kempe chains work with pairs of colors"
 		cycle = self.getBoundaryCycle()
 		result = []
