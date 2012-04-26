@@ -632,7 +632,7 @@ class Configuration :
 				not occluded by yet another chain).
 			"""
 			if i == len(cycle) :
-				result.append(kempeGroupsSoFar)
+				result.append(kempeChainsSoFar)
 				return
 			#
 			# sub-nested function
