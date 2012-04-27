@@ -799,6 +799,9 @@ class Configuration :
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> config.isDreducible()
 		single node of degree 4
+		>>> config = Configuration([Node("a", 5)], [])
+		>>> config.isDreducible()
+		single node of degree 5
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> config.isDreducible()
@@ -853,6 +856,9 @@ class Configuration :
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> config.isCreducible()
 		single node of degree 4
+		>>> config = Configuration([Node("a", 5)], [])
+		>>> config.isDreducible()
+		single node of degree 5
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> config.isCreducible()
