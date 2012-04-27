@@ -7,7 +7,7 @@ added test result file.  Generate it with:
 
 """
 
-import itertools, copy, sys, os
+import itertools, copy, sys
 
 # UTILS #
 
@@ -16,18 +16,9 @@ def sort_uniq(sequence):
 	"Return a generator of the given values sorted sans duplicates."
 	return (x[0] for x in itertools.groupby(sorted(sequence)))
 
-# from http://docs.python.org/library/itertools.html#recipes
-def powerset(iterable):
-	"powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-	s = list(iterable)
-	return itertools.chain.from_iterable(
-			itertools.combinations(s, r) for r in range(len(s)+1))
-
-
 # CONSTANTS #
 
-COLOR_PAIRS = ["RB", "RG", "RY"]
-COLORS = ["R", "G", "B", "Y"]
+COLORS = ["R", "B", "G", "Y"]
 def colorToCSSColor(colorID) :
 	if colorID == None: return None
 	elif colorID == "R": return "#ff0000"
@@ -35,8 +26,6 @@ def colorToCSSColor(colorID) :
 	elif colorID == "B": return "#0000ff"
 	elif colorID == "Y": return "#ffff00"
 	else: raise ValueError("Invalid color")
-
-
 
 # CLASSES #
 
@@ -96,9 +85,6 @@ class BoundaryNode :
 	#
 	def __cmp__(self, other) :
 		return cmp(self.name, other.name)
-	#
-	def __hash__(self) :
-		return hash(self.name)
 	
 class Configuration :
 	"""
@@ -522,55 +508,35 @@ class Configuration :
 	def getBoundaryColorings(self) :
 		return map(lambda coloring: map(lambda node: node.color, coloring), \
 				self.generatePossibleBoundaryColorings())
-	def generatePossibleBoundaryColorings(self, tryingCreduction=False) :
+	def generatePossibleBoundaryColorings(self) :
 		"""
 		A generator that produces all possible colorings of the boundary nodes,
 		modulo renaming of colors.
 		>>> config = Configuration([Node("a", 3)], [])
 		>>> config.getBoundaryColorings()
-		[['R', 'G', 'Y'], ['R', 'G', 'B']]
+		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		>>> config = Configuration([Node("a")], [])
-		>>> sorted(map(lambda colors: ''.join(colors), config.getBoundaryColorings()))
-		['RGBGB', 'RGBGY', 'RGBYB', 'RGBYG', 'RGYBG', 'RGYBY', 'RGYGB', 'RGYGY']
+		>>> map(lambda colors: ''.join(colors), config.getBoundaryColorings())
+		['RBYRY', 'RBYRB', 'RBYRG', 'RBYBY', 'RBYBG', 'RBYGY', 'RBYGB', 'RBRYB', 'RBRYG', 'RBRBY', 'RBRBG', 'RBRGY', 'RBRGB', 'RBGYB', 'RBGYG', 'RBGRY', 'RBGRB', 'RBGRG', 'RBGBY', 'RBGBG']
 		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
 		>>> config.getBoundaryColorings()
-		[['R', 'G', 'Y'], ['R', 'G', 'B']]
-
+		[['R', 'B', 'Y'], ['R', 'B', 'G']]
 		"""
 		cycle = self.getBoundaryCycle()
 		assert len(cycle) >= 2, "Boundary too small"
 		cycle[0].color = COLORS[0]
 		cycle[1].color = COLORS[1]
-		if tryingCreduction :
-			cycle[2].color = COLORS[0]
-			firstUndeterminedIndex = 3
-		else:
-			firstUndeterminedIndex = 2
-		index = firstUndeterminedIndex
+		index = 2
 		while True :
-			if index < firstUndeterminedIndex :
+			if index < 2 :
 				break
 			if index >= len(cycle) :
 				yield cycle
 				index -= 1
 				continue
-			# We subtract COLORS[0] because the smaller map we
-			# are imagining (arbitrarily, for our convenience),
-			# in addition to having none of the nodes in the
-			# main configuration,
-			# has edges from cycle[0] to every other node in
-			# cycle (the boundary cycle).
-			if len(self.nodes.values())-len(self.getBoundaryCycle()) > 1:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index])) - \
-						set(cycle[index].colorsTried) - \
-					set(COLORS[3]) )
-			else:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index])) - \
-					set(cycle[index].colorsTried) - \
-					set(COLORS[0]) )
+			colorsToTry = list(set(self.allowedColors(cycle[index])) - \
+											set(cycle[index].colorsTried))
 			if len(colorsToTry) == 0 :
 				cycle[index].color = None
 				cycle[index].colorsTried = []
@@ -582,129 +548,6 @@ class Configuration :
 		cycle[0].color = None
 		cycle[1].color = None
 		#
-	def generatePossibleKempeChainConnectivitySets(self, colorPair) :
-		"""
-		Automatically adds a boundary if it isn't there already.
-		Results in a large number of sets like, if there are five
-		boundary nodes a-e, perhaps
-		->>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
-		-...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		-...                         ("d", "a"), ("b", "d")])
-		>>> config = Configuration([Node("a", 4)], [])
-		>>> for coloring in config.generatePossibleBoundaryColorings():
-		...     print [node.color for node in coloring], ":"
-		...     r,g,b,y = COLORS
-		...     print r+g+'/'+b+y+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, g))
-		...     print r+b+'/'+g+y+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, b))
-		...     print r+y+'/'+g+b+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, y))
-		..yeah.
-
-		[set([a, c]), set([b]), set([d, e])]
-		{a: 0, b: 1, c: 0, d: 2, e: 2}
-		{a: set([a, c]), b: set([b]), c: set([a, c]), d: set([d, e]), e: set([d, e])}
-		: a list of one of those.
-		
-		each of which (for the given pair of pair of colors)
-		is in this possibility Kempe-chain-connected and thus
-		can have its two colors exchanged anytime.
-		...i'll just make it return a list and check whether it gets too large. simpler coding.
-		"""
-		colorPair1 = set(colorPair)
-		colorPair2 = set(COLORS) - colorPair1
-		def whichColorPair(color) :
-			"""Returns a value comparable for equality which determines
-			   an equivalence class between colors."""
-			return color in colorPair1
-		assert len(colorPair1) == len(colorPair2) == 2, \
-				"Kempe chains work with pairs of colors"
-		cycle = self.getBoundaryCycle()
-		result = []
-		def weFoundAResult(kempeChains) :
-			nodeIndexedKempeChains = {}
-			for i in kempeChains.keys() :
-				nodeIndexedKempeChains[cycle[i]] = kempeChains[i]
-			result.append(nodeIndexedKempeChains)
-		#
-		# nested function
-		def tryNext(i, kempeChainsSoFar, numKempeChainsSoFar, occludedSet) :
-			"""
-			Recursively look for kempe grouping possibilities for each of the
-			 remaining nodes in the cycle.
-			i:
-				This is the 'cycle'-index of the current node we're
-				looking at.  Every recursive call increments i.
-				The recursion ends when i == len(cycle).
-			kempeChainsSoFar:
-				This is a dictionary from 'cycle'-index (integer) to
-				kempe-chain-index (integer) that contains keys range(0,i)
-				(plus possibly range(n,len(cycle)) for some n due to
-				"horrible corner case"), and its values contains each of
-				range(0,numKempeChainsSoFar) at least once.
-			numKempeChainsSoFar:
-				This integer just counts the number of Kempe chains we've named.
-			occludedSet: Set of 'cycle'-indices of nodes we've seen for which
-				there is a kempe chain we've seen that's attached to
-				at least one node before and one node after the occluded node.
-				Any new node we look at, since we look at them in order,
-				will not be able to attach to it in a kempe chain (except
-				possibly by attaching to one of those before or after nodes,
-				which we allow when possible, i.e., when they themselves are
-				not occluded by yet another chain).
-			"""
-			if i == len(cycle) :
-				weFoundAResult(kempeChainsSoFar)
-				return
-			#
-			# sub-nested function
-			def joinKempeChainAndRecur(kempeChainID) :
-				newKempeChainsSoFar = copy.copy(kempeChainsSoFar)
-				newOccludedSet = copy.copy(occludedSet)
-				newKempeChainsSoFar[i] = kempeChainID
-				newKempeChain = [n for n in newKempeChainsSoFar.keys() \
-				                         if newKempeChainsSoFar[n] == kempeChainID ]
-				newlyOccluded = range(min(newKempeChain)+1, i)
-				newOccludedSet |= set(newlyOccluded)
-				tryNext(i + 1, newKempeChainsSoFar, numKempeChainsSoFar, newOccludedSet)
-			#
-			# end sub-nested function: tryNext
-			#
-			if i in kempeChainsSoFar :
-				# finish dealing with the horrible corner case mentioned below
-				weFoundAResult(kempeChainsSoFar)
-			elif whichColorPair(cycle[i - 1].color) == whichColorPair(cycle[i].color) :
-				prevNodeIndex = (i - 1) % len(cycle)
-				prevNodeKempeChain = kempeChainsSoFar[prevNodeIndex]
-				joinKempeChainAndRecur(prevNodeKempeChain)
-			else :
-				priorNodesThatWeCanConnectTo = \
-					       [n for n in range(0, i) \
-						 if n not in occludedSet and \
-						  whichColorPair(cycle[n].color) == \
-						  whichColorPair(cycle[i].color)]
-				kempeChainIDsThatWeCanConnectTo = list(set([ \
-					kempeChainsSoFar[n] for n in priorNodesThatWeCanConnectTo]))
-				#
-				for kempeChainID in kempeChainIDsThatWeCanConnectTo:
-					joinKempeChainAndRecur(kempeChainID)
-				newSingletonKempeChainID = numKempeChainsSoFar
-				numKempeChainsSoFar += 1
-				joinKempeChainAndRecur(newSingletonKempeChainID)
-		#
-		# end nested function: joinInKempeChainAndRecur
-		#
-		startingKempeChains = {0: 0}
-		# Deal with a horrible corner case:
-		for i in reversed(xrange(len(cycle))) :
-			if whichColorPair(cycle[i].color) == whichColorPair(cycle[0].color) :
-				startingKempeChains[i] = 0
-			else:
-				break
-		tryNext(1, startingKempeChains, 1, set())
-		return result
-	#
 	def isColorable(self, retainTheValidColoring = False) :
 		"""
 		Return True if the is at least one valid coloring of the
@@ -758,142 +601,6 @@ class Configuration :
 			if not testConfig.isColorable() :
 				return False
 		return True
-	#
-	def swapKempeChain(self, chain, kempeChains, colorPair) :
-		for boundaryNode in [n for n in kempeChains.keys() if kempeChains[n] == chain] :
-			if boundaryNode.color in colorPair :
-				if boundaryNode.color == colorPair[0] :
-					boundaryNode.color = colorPair[1]
-				else :
-					boundaryNode.color = colorPair[0]
-			else : # other pair
-				otherPair = list(set(COLORS) - set(colorPair))
-				if boundaryNode.color == otherPair[0] :
-					boundaryNode.color = otherPair[1]
-				else :
-					boundaryNode.color = otherPair[0]
-	#
-	def kempeChainsAllowReduction(self, kempeChains, colorPair) :
-		for chain in list(set(kempeChains.values())) :
-			self.swapKempeChain(chain, kempeChains, colorPair)
-			colorable = self.isColorable()
-			self.swapKempeChain(chain, kempeChains, colorPair)
-			if colorable :
-				return True
-		return False
-	#
-	def connectivitySetsAllowReduction(self, connectivitySets, colorPair) :
-		for kempeChains in connectivitySets :
-			if not self.kempeChainsAllowReduction(kempeChains, colorPair) :
-				return False
-		return True
-	#
-	def isDreducible(self, makeGraphViz=False) :
-		"""
-		Return true if the configuration is D-reducible.
-		 In this case D-reducible means that any valid colorings of the
-		 Boundarynodes allow a valid coloring for the whole configuration
-		 with simple Kempe-chain arguments.
-		 D.A. Holton/J.Sheehan say that Birkhoff diamond is D-recucible, but
-		 our code shows counterexamples.
-		>>> config = Configuration([Node("a", 4)], [])
-		>>> config.isDreducible()
-		single node of degree 4
-		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
-		...                        [("a", "b"), ("b", "c"), ("c", "a")])
-		>>> config.isDreducible()
-		triangle
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		birkhov diamond
-		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		birnhart diamond
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		example 2 from rsst
-		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isDreducible()
-		example 5 from rsst
-		"""
-		testConfig = copy.deepcopy(self)
-		for _ in testConfig.generatePossibleBoundaryColorings() :
-			if not testConfig.isColorable() :
-				#print [n.color for n in testConfig.getBoundaryCycle()]
-				kempeArgumentFound = False
-				for colorPair in COLOR_PAIRS :
-					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(colorPair)
-					if testConfig.connectivitySetsAllowReduction(connectivitySets, colorPair) :
-						kempeArgumentFound = True
-						break
-				if not kempeArgumentFound :
-					if makeGraphViz :
-						open("test.dot", "w+").write(testConfig.toDotGraph())
-						os.system("neato -Tpng test.dot > test.png")
-					return False
-		return True
-	#
-	def isCreducible(self, makeGraphViz=False) :
-		"""
-		Return true if the configuration is C-reducible.
-		 In this case C-reducible means that any valid colorings of the
-		 Boundarynodes allow a valid coloring for the whole configuration
-		 with simple Kempe-chain arguments and a simple shrinking of the
-		 smaller graph. Specifically, if there are 4 or more boundary
-		 nodes, assume the 1st and 3rd boundary nodes are the same node
-		 and thus the same color.
-		>>> config = Configuration([Node("a", 4)], [])
-		>>> config.isCreducible()
-		single node of degree 4
-		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
-		...                        [("a", "b"), ("b", "c"), ("c", "a")])
-		>>> config.isCreducible()
-		(C) triangle
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible(True)
-		(C) birkhov diamond
-		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) birnhart diamond
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 2 from rsst
-		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 5 from rsst
-		"""
-		testConfig = copy.deepcopy(self)
-		for _ in testConfig.generatePossibleBoundaryColorings(True) :
-			if not testConfig.isColorable() :
-				#print [n.color for n in testConfig.getBoundaryCycle()]
-				kempeArgumentFound = False
-				for colorPair in COLOR_PAIRS :
-					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(colorPair)
-					if testConfig.connectivitySetsAllowReduction(connectivitySets, colorPair) :
-						kempeArgumentFound = True
-						break
-				if not kempeArgumentFound :
-					if makeGraphViz :
-						open("test.dot", "w+").write(testConfig.toDotGraph())
-						os.system("neato -Tpng test.dot > test.png")
-					return False
-		return True
 	def toDotGraph(self) :
 		"""
 		Returns a text string in GraphViz .dot format.
@@ -906,7 +613,7 @@ class Configuration :
 		"a_5" []
 		"b_5" []
 		"c_5" []
-		"a_5" -- "b_5"
+	"a_5" -- "b_5"
 		"a_5" -- "c_5"
 		"b_5" -- "c_5"
 		}

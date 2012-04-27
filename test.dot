@@ -1,0 +1,34 @@
+graph {
+node [style="filled"]
+"a_5" []
+"b_5" []
+"b85|" [fillcolor="#00ff00",style="filled,dashed"]
+"b86|" [fillcolor="#00ff00",style="filled,dashed"]
+"b87|" [fillcolor="#ff0000",style="filled,dashed"]
+"b88|" [fillcolor="#ff0000",style="filled,dashed"]
+"b89|" [fillcolor="#ff0000",style="filled,dashed"]
+"b90|" [fillcolor="#00ff00",style="filled,dashed"]
+"c_5" []
+"d_5" []
+"a_5" -- "b_5"
+"a_5" -- "b85|"
+"a_5" -- "b86|"
+"a_5" -- "b89|"
+"a_5" -- "d_5"
+"b_5" -- "b86|"
+"b_5" -- "b87|"
+"b_5" -- "c_5"
+"b_5" -- "d_5"
+"b85|" -- "b88|"
+"b85|" -- "b89|"
+"b85|" -- "d_5"
+"b86|" -- "b87|"
+"b86|" -- "b89|"
+"b87|" -- "b90|"
+"b87|" -- "c_5"
+"b88|" -- "b90|"
+"b88|" -- "c_5"
+"b88|" -- "d_5"
+"b90|" -- "c_5"
+"c_5" -- "d_5"
+}

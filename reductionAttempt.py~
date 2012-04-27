@@ -7,7 +7,7 @@ added test result file.  Generate it with:
 
 """
 
-import itertools, copy, sys, os
+import itertools, copy, sys
 
 # UTILS #
 
@@ -522,7 +522,7 @@ class Configuration :
 	def getBoundaryColorings(self) :
 		return map(lambda coloring: map(lambda node: node.color, coloring), \
 				self.generatePossibleBoundaryColorings())
-	def generatePossibleBoundaryColorings(self, tryingCreduction=False) :
+	def generatePossibleBoundaryColorings(self) :
 		"""
 		A generator that produces all possible colorings of the boundary nodes,
 		modulo renaming of colors.
@@ -542,14 +542,9 @@ class Configuration :
 		assert len(cycle) >= 2, "Boundary too small"
 		cycle[0].color = COLORS[0]
 		cycle[1].color = COLORS[1]
-		if tryingCreduction :
-			cycle[2].color = COLORS[0]
-			firstUndeterminedIndex = 3
-		else:
-			firstUndeterminedIndex = 2
-		index = firstUndeterminedIndex
+		index = 2
 		while True :
-			if index < firstUndeterminedIndex :
+			if index < 2 :
 				break
 			if index >= len(cycle) :
 				yield cycle
@@ -561,14 +556,8 @@ class Configuration :
 			# main configuration,
 			# has edges from cycle[0] to every other node in
 			# cycle (the boundary cycle).
-			if len(self.nodes.values())-len(self.getBoundaryCycle()) > 1:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index])) - \
-						set(cycle[index].colorsTried) - \
-					set(COLORS[3]) )
-			else:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index])) - \
+			colorsToTry = list( \
+				set(self.allowedColors(cycle[index])) - \
 					set(cycle[index].colorsTried) - \
 					set(COLORS[0]) )
 			if len(colorsToTry) == 0 :
@@ -788,14 +777,12 @@ class Configuration :
 				return False
 		return True
 	#
-	def isDreducible(self, makeGraphViz=False) :
+	def isDreducible(self) :
 		"""
 		Return true if the configuration is D-reducible.
 		 In this case D-reducible means that any valid colorings of the
 		 Boundarynodes allow a valid coloring for the whole configuration
 		 with simple Kempe-chain arguments.
-		 D.A. Holton/J.Sheehan say that Birkhoff diamond is D-recucible, but
-		 our code shows counterexamples.
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> config.isDreducible()
 		single node of degree 4
@@ -813,16 +800,6 @@ class Configuration :
 		...                         ("d", "a"), ("b", "d")])
 		>>> config.isDreducible()
 		birnhart diamond
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		example 2 from rsst
-		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isDreducible()
-		example 5 from rsst
 		"""
 		testConfig = copy.deepcopy(self)
 		for _ in testConfig.generatePossibleBoundaryColorings() :
@@ -835,65 +812,9 @@ class Configuration :
 						kempeArgumentFound = True
 						break
 				if not kempeArgumentFound :
-					if makeGraphViz :
-						open("test.dot", "w+").write(testConfig.toDotGraph())
-						os.system("neato -Tpng test.dot > test.png")
 					return False
 		return True
 	#
-	def isCreducible(self, makeGraphViz=False) :
-		"""
-		Return true if the configuration is C-reducible.
-		 In this case C-reducible means that any valid colorings of the
-		 Boundarynodes allow a valid coloring for the whole configuration
-		 with simple Kempe-chain arguments and a simple shrinking of the
-		 smaller graph. Specifically, if there are 4 or more boundary
-		 nodes, assume the 1st and 3rd boundary nodes are the same node
-		 and thus the same color.
-		>>> config = Configuration([Node("a", 4)], [])
-		>>> config.isCreducible()
-		single node of degree 4
-		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
-		...                        [("a", "b"), ("b", "c"), ("c", "a")])
-		>>> config.isCreducible()
-		(C) triangle
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible(True)
-		(C) birkhov diamond
-		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) birnhart diamond
-		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 2 from rsst
-		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
-		...                        [("a", "b"), ("b", "c"), ("c", "d"),
-		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 5 from rsst
-		"""
-		testConfig = copy.deepcopy(self)
-		for _ in testConfig.generatePossibleBoundaryColorings(True) :
-			if not testConfig.isColorable() :
-				#print [n.color for n in testConfig.getBoundaryCycle()]
-				kempeArgumentFound = False
-				for colorPair in COLOR_PAIRS :
-					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(colorPair)
-					if testConfig.connectivitySetsAllowReduction(connectivitySets, colorPair) :
-						kempeArgumentFound = True
-						break
-				if not kempeArgumentFound :
-					if makeGraphViz :
-						open("test.dot", "w+").write(testConfig.toDotGraph())
-						os.system("neato -Tpng test.dot > test.png")
-					return False
-		return True
 	def toDotGraph(self) :
 		"""
 		Returns a text string in GraphViz .dot format.
