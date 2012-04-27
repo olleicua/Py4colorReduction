@@ -26,6 +26,7 @@ def powerset(iterable):
 
 # CONSTANTS #
 
+COLOR_PAIRS = ["RB", "RG", "RY"]
 COLORS = ["R", "G", "B", "Y"]
 def colorToCSSColor(colorID) :
 	if colorID == None: return None
@@ -34,6 +35,8 @@ def colorToCSSColor(colorID) :
 	elif colorID == "B": return "#0000ff"
 	elif colorID == "Y": return "#ffff00"
 	else: raise ValueError("Invalid color")
+
+
 
 # CLASSES #
 
@@ -93,6 +96,9 @@ class BoundaryNode :
 	#
 	def __cmp__(self, other) :
 		return cmp(self.name, other.name)
+	#
+	def __hash__(self) :
+		return hash(self.name)
 	
 class Configuration :
 	"""
@@ -606,8 +612,12 @@ class Configuration :
 		cycle = self.getBoundaryCycle()
 		result = []
 		def weFoundAResult(kempeChains) :
-			result.append(kempeChains)
-		# nested function; recursive
+			nodeIndexedKempeChains = {}
+			for i in kempeChains.keys() :
+				nodeIndexedKempeChains[cycle[i]] = kempeChains[i]
+			result.append(nodeIndexedKempeChains)
+		#
+		# nested function
 		def tryNext(i, kempeChainsSoFar, numKempeChainsSoFar, occludedSet) :
 			"""
 			Recursively look for kempe grouping possibilities for each of the
@@ -737,6 +747,74 @@ class Configuration :
 			if not testConfig.isColorable() :
 				return False
 		return True
+	#
+	def swapKempeChain(self, chain, kempeChains, colorPair) :
+		for boundaryNode in [n for n in kempeChains.keys() if kempeChains[n] == chain] :
+			if boundaryNode.color in colorPair :
+				if boundaryNode.color == colorPair[0] :
+					boundaryNode.color = colorPair[1]
+				else :
+					boundaryNode.color = colorPair[0]
+			else : # other pair
+				otherPair = list(set(COLORS) - set(colorPair))
+				if boundaryNode.color == otherPair[0] :
+					boundaryNode.color = otherPair[1]
+				else :
+					boundaryNode.color = otherPair[0]
+	#
+	def kempeChainsAllowReduction(self, kempeChains, colorPair) :
+		for chain in list(set(kempeChains.values())) :
+			self.swapKempeChain(chain, kempeChains, colorPair)
+			colorable = self.isColorable()
+			self.swapKempeChain(chain, kempeChains, colorPair)
+			if colorable :
+				return True
+		return False
+	#
+	def connectivitySetsAllowReduction(self, connectivitySets, colorPair) :
+		for kempeChains in connectivitySets :
+			if not self.kempeChainsAllowReduction(kempeChains, colorPair) :
+				return False
+		return True
+	#
+	def isDreducible(self) :
+		"""
+		Return true if the configuration is D-reducible.
+		 In this case D-reducible means that any valid colorings of the
+		 Boundarynodes allow a valid coloring for the whole configuration
+		 with simple Kempe-chain arguments.
+		>>> config = Configuration([Node("a", 4)], [])
+		>>> config.isDreducible()
+		single node of degree 4
+		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
+		...                        [("a", "b"), ("b", "c"), ("c", "a")])
+		>>> config.isDreducible()
+		triangle
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		...                         ("d", "a"), ("b", "d")])
+		>>> config.isDreducible()
+		birkhov diamond
+		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		...                         ("d", "a"), ("b", "d")])
+		>>> config.isDreducible()
+		birnhart diamond
+		"""
+		testConfig = copy.deepcopy(self)
+		for _ in testConfig.generatePossibleBoundaryColorings() :
+			if not testConfig.isColorable() :
+				#print [n.color for n in testConfig.getBoundaryCycle()]
+				kempeArgumentFound = False
+				for colorPair in COLOR_PAIRS :
+					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(colorPair)
+					if testConfig.connectivitySetsAllowReduction(connectivitySets, colorPair) :
+						kempeArgumentFound = True
+						break
+				if not kempeArgumentFound :
+					return False
+		return True
+	#
 	def toDotGraph(self) :
 		"""
 		Returns a text string in GraphViz .dot format.
