@@ -774,10 +774,13 @@ class Configuration :
 					boundaryNode.color = otherPair[0]
 	#
 	def kempeChainsAllowReduction(self, kempeChains, colorPair) :
-		for chain in list(set(kempeChains.values())) :
-			self.swapKempeChain(chain, kempeChains, colorPair)
+		for chains in powerset(set(kempeChains.values())) :
+			for chain in chains:
+				self.swapKempeChain(chain, kempeChains, colorPair)
 			colorable = self.isColorable()
-			self.swapKempeChain(chain, kempeChains, colorPair)
+			# restore graph to original state:
+			for chain in chains:
+				self.swapKempeChain(chain, kempeChains, colorPair)
 			if colorable :
 				return True
 		return False
