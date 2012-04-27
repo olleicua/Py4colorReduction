@@ -792,7 +792,7 @@ class Configuration :
 		"""
 		Return true if the configuration is D-reducible.
 		 In this case D-reducible means that any valid colorings of the
-		 Boundarynodes allow a valid coloring for the whole configuration
+		 BoundaryNodes allow a valid coloring for the whole configuration
 		 with simple Kempe-chain arguments.
 		 D.A. Holton/J.Sheehan say that Birkhoff diamond is D-recucible, but
 		 our code shows counterexamples.
@@ -807,12 +807,12 @@ class Configuration :
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
 		>>> config.isDreducible()
-		birkhov diamond
+		birkhoff diamond
 		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
 		>>> config.isDreducible()
-		birnhart diamond
+		bernhart diamond
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
