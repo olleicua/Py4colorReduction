@@ -79,15 +79,11 @@ class BoundaryNode :
 	"""
 	A node with unspecified degree for the boundary ring of a configuration.
 	Use:
-	->>> BoundaryNode()
-	b0
-	->>> BoundaryNode()
-	b1
+	>>> BoundaryNode('b#3')
+	b#3
 	"""
-	count = 0
-	def __init__(self) :
-		self.name = "b%d|" % self.__class__.count
-		self.__class__.count += 1
+	def __init__(self, name) :
+		self.name = name
 		self.color = None
 		self.colorsTried = []
 		#
@@ -236,7 +232,7 @@ class Configuration :
 		Use:
 		>>> config = Configuration([Node("a"), Node("b", 7)],
 		...                        [("a", "b")])
-		>>> bn = BoundaryNode()
+		>>> bn = BoundaryNode('b#x')
 		>>> config.nodes[bn.name] = bn
 		>>> config.addEdge(config["a"], bn)
 		>>> config.getBoundaryNeighbors(config["a"]) == [bn]
@@ -425,7 +421,7 @@ class Configuration :
 		>>> len(config.getBoundaryNeighbors(config["a"])) == 5
 		True
 		>>> sorted(config.adjacencyList)
-		[(a_5, b0|), (a_5, b1|), (a_5, b2|), (a_5, b3|), (a_5, b4|), (b0|, b1|), (b0|, b4|), (b1|, b2|), (b2|, b3|), (b3|, b4|)]
+		[(a_5, b#0), (a_5, b#1), (a_5, b#2), (a_5, b#3), (a_5, b#4), (b#0, b#1), (b#0, b#4), (b#1, b#2), (b#2, b#3), (b#3, b#4)]
 		
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("a", "c"), ("c", "b")])
@@ -453,11 +449,19 @@ class Configuration :
 		>>> len(config.adjacencyList)
 		14
 		"""
+		if any([isinstance(node, BoundaryNode) for node in self.nodes.values()]) :
+			return
+		tentativeBoundaryNumber = [0]
+		def makeBoundaryNode() :
+			name = "b#tentative" + str(tentativeBoundaryNumber[0])
+			tentativeBoundaryNumber[0] += 1
+			node = BoundaryNode(name)
+			self.nodes[name] = node
+			return node
 		# add triangulating boundary nodes between each pair in the outer cycle
 		outerCycle = self.outerNodeCycle()
 		for cycleI, node in enumerate(outerCycle) :
-			newBoundaryNode = BoundaryNode()
-			self.nodes[newBoundaryNode.name] = newBoundaryNode
+			newBoundaryNode = makeBoundaryNode()
 			self.addEdge(newBoundaryNode, node)
 			self.addEdge(newBoundaryNode, outerCycle[cycleI - 1])
 			# cycleI - 1 wraps when cycleI == 0
@@ -486,7 +490,7 @@ class Configuration :
 				#
 			else :
 				# generate new BoundaryNodes
-				newBoundaryNodes = [BoundaryNode() for _ in range(newCount)]
+				newBoundaryNodes = [makeBoundaryNode() for _ in range(newCount)]
 				#
 				# connect new BoundaryNodes to previous triangulating ones
 				triangleNodes = self.getBoundaryNeighbors(node)
@@ -498,10 +502,27 @@ class Configuration :
 				#
 				# connect new BoundaryNodes to each other and this Node
 				for newBNi, boundaryNode in enumerate(newBoundaryNodes) :
-					self.nodes[boundaryNode.name] = boundaryNode
 					self.addEdge(boundaryNode, node)
 					if newBNi > 0 :
 						self.addEdge(boundaryNode, newBoundaryNodes[newBNi - 1])
+		unorderedBoundaryNodes = [node for node in self.nodes.values() if
+						isinstance(node, BoundaryNode)]
+		if len(unorderedBoundaryNodes) <= 2:
+			orderedBoundaryNodes = unorderedBoundaryNodes
+		else:
+			prev = unorderedBoundaryNodes[0]
+			cur = self.getBoundaryNeighbors(prev)[0]
+			orderedBoundaryNodes = [prev, cur]
+			while True:
+				a, b = self.getBoundaryNeighbors(cur)
+				next = a if a != prev else b
+				if next == orderedBoundaryNodes[0]:
+					break
+				orderedBoundaryNodes.append(next)
+				prev = cur
+				cur = next
+		for i, node in enumerate(orderedBoundaryNodes) :
+			self.renameNode(node.name, "b#" + str(i))
 		#
 	def getBoundaryCycle(self) :
 		"""
@@ -518,6 +539,8 @@ class Configuration :
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> len(config.getBoundaryCycle())
 		4
+		>>> config.getBoundaryNeighbors(config.nodes["b#3"])
+		[b#2, b#0]
 		>>> config = Configuration([Node("a", 3)], [])
 		>>> len(config.getBoundaryCycle())
 		3
@@ -532,21 +555,8 @@ class Configuration :
 		0
 		"""
 		self.addBoundary()
-		unorderedBoundaryNodes = [node for node in self.nodes.values() if
-						isinstance(node, BoundaryNode)]
-		if len(unorderedBoundaryNodes) <= 2:
-			return unorderedBoundaryNodes
-		prev = unorderedBoundaryNodes[0]
-		cur = self.getBoundaryNeighbors(prev)[0]
-		result = [prev, cur]
-		while True:
-			a, b = self.getBoundaryNeighbors(cur)
-			next = a if a != prev else b
-			if next == result[0]:
-				return result
-			result.append(next)
-			prev = cur
-			cur = next
+		return sorted([node for node in self.nodes.values() if
+					isinstance(node, BoundaryNode)])
 		#
 	def getBoundaryColorings(self) :
 		return map(lambda coloring: map(lambda node: node.color, coloring), \
