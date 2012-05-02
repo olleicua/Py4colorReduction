@@ -684,13 +684,14 @@ class Configuration :
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> for coloring in config.generatePossibleBoundaryColorings():
 		...     print [node.color for node in coloring], ":"
+		...     def toList(sets): return [s.values() for s in sets]
 		...     r,g,b,y = COLORS
 		...     print r+g+'/'+b+y+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, g))
+		            toList(config.generatePossibleKempeChainConnectivitySets((r, g)))
 		...     print r+b+'/'+g+y+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, b))
+		            toList(config.generatePossibleKempeChainConnectivitySets((r, b)))
 		...     print r+y+'/'+g+b+':', \
-		            config.generatePossibleKempeChainConnectivitySets((r, y))
+		            toList(config.generatePossibleKempeChainConnectivitySets((r, y)))
 		..yeah.
 
 		[set([a, c]), set([b]), set([d, e])]
