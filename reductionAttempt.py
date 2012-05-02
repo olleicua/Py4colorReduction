@@ -186,6 +186,29 @@ class Configuration :
 		self.adjacencyList = filter(lambda (a,b): a != b, renamedUniqedAdjacencies)
 		del self.nodes[mergeNodeB.name]
 	#
+	def renameNode(self, oldName, newName) :
+		"""
+		>>> config = Configuration([Node("a"), Node("b")], [("a", "b")])
+		>>> config.renameNode("a", "c")
+		>>> sorted(config.nodes.keys())
+		['b', 'c']
+		>>> config.adjacencyList
+		[(b_5, c_5)]
+		>>> config.renameNode("c", "b")
+		Traceback (most recent call last):
+		    ...
+		AssertionError: renaming to an existing node name
+		"""
+		assert oldName in self.nodes, "renaming a nonexistent node"
+		assert newName not in self.nodes, "renaming to an existing node name"
+		node = self.nodes[oldName]
+		del self.nodes[oldName]
+		node.name = newName
+		self.nodes[newName] = node
+		# adjacencyList has nodes, not names, so it doesn't have to be changed
+		# BUT WAIT its consistency will be broken because of the ordering
+		self.adjacencyList = [tuple(sorted(pair)) for pair in self.adjacencyList]
+	#
 	def getNeighbors(self, node) :
 		"""
 		Use:
