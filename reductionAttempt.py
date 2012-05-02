@@ -86,6 +86,7 @@ class BoundaryNode :
 		self.name = name
 		self.color = None
 		self.colorsTried = []
+		self.cycleNumber = None
 		#
 	def __repr__(self) :
 		return self.name
@@ -229,6 +230,20 @@ class Configuration :
 	#
 	def getBoundaryNeighbors(self, node) :
 		"""
+		Returns a list of all BoundaryNodes neigboring 'node'.
+		The order of the list is as follows:
+		
+		If node is a boundary node, returns a list
+		[prior, next] boundary node in the canonical
+		boundary cycle order.
+		
+		Otherwise, returns a list of all node's boundary-node
+		neighbors in some boundary-cycle-consistent order
+		(not necessarily the most sensible order;
+		this latter constraint only ensures that if
+		there are three or more nearby nodes, they won't
+		be completely mixed up).
+
 		Use:
 		>>> config = Configuration([Node("a"), Node("b", 7)],
 		...                        [("a", "b")])
@@ -237,6 +252,18 @@ class Configuration :
 		>>> config.addEdge(config["a"], bn)
 		>>> config.getBoundaryNeighbors(config["a"]) == [bn]
 		True
+		>>> config = Configuration([Node("a", 4)], [])
+		>>> config.addBoundary()
+		>>> config.getBoundaryNeighbors(config.nodes['b#1'])
+		[b#0, b#2]
+		>>> config.getBoundaryNeighbors(config.nodes['b#2'])
+		[b#1, b#3]
+		>>> config.getBoundaryNeighbors(config.nodes['b#3'])
+		[b#2, b#0]
+		>>> config.getBoundaryNeighbors(config.nodes['b#0'])
+		[b#3, b#1]
+		>>> config.getBoundaryNeighbors(config.nodes['a'])
+		[b#0, b#1, b#2, b#3]
 		"""
 		result = []
 		for nodeA, nodeB in self.adjacencyList :
@@ -244,7 +271,14 @@ class Configuration :
 				result.append(nodeB)
 			if node == nodeB and isinstance(nodeA, BoundaryNode) :
 				result.append(nodeA)
-		return sorted(result)
+		result.sort()
+		try :
+			if node.cycleNumber == 0 or \
+			   (node.cycleNumber != 1 and result[0].cycleNumber == 0) :
+			   	   result.reverse()
+		except :
+			pass
+		return result
 	#
 	def apparentDegree(self, node) :
 		"""
@@ -539,6 +573,7 @@ class Configuration :
 				prev = cur
 				cur = next
 		for i, node in enumerate(orderedBoundaryNodes) :
+			node.cycleNumber = i
 			self.renameNode(node.name, "b#" + str(i))
 		#
 	def getBoundaryCycle(self) :
@@ -557,7 +592,7 @@ class Configuration :
 		>>> len(config.getBoundaryCycle())
 		4
 		>>> config.getBoundaryNeighbors(config.nodes["b#3"])
-		[b#0, b#2]
+		[b#2, b#0]
 		>>> config = Configuration([Node("a", 3)], [])
 		>>> len(config.getBoundaryCycle())
 		3
