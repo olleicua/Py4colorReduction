@@ -199,12 +199,14 @@ class Configuration :
 		>>> config.renameNode("c", "b")
 		Traceback (most recent call last):
 		    ...
-		AssertionError: renaming to an existing node name
+		AssertionError: renaming c to an existing node name b
 		"""
-		assert oldName in self.nodes, "renaming a nonexistent node"
+		assert oldName in self.nodes, \
+			"renaming a nonexistent node %s to %s" % (oldName, newName)
 		if oldName == newName:
 			return
-		assert newName not in self.nodes, "renaming to an existing node name"
+		assert newName not in self.nodes, \
+			"renaming %s to an existing node name %s" % (oldName, newName)
 		node = self.nodes[oldName]
 		del self.nodes[oldName]
 		node.name = newName
