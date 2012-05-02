@@ -189,6 +189,8 @@ class Configuration :
 	def renameNode(self, oldName, newName) :
 		"""
 		>>> config = Configuration([Node("a"), Node("b")], [("a", "b")])
+		>>> config.renameNode("a", "a")
+
 		>>> config.renameNode("a", "c")
 		>>> sorted(config.nodes.keys())
 		['b', 'c']
@@ -200,6 +202,8 @@ class Configuration :
 		AssertionError: renaming to an existing node name
 		"""
 		assert oldName in self.nodes, "renaming a nonexistent node"
+		if oldName == newName:
+			return
 		assert newName not in self.nodes, "renaming to an existing node name"
 		node = self.nodes[oldName]
 		del self.nodes[oldName]
