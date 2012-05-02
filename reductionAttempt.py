@@ -244,7 +244,7 @@ class Configuration :
 				result.append(nodeB)
 			if node == nodeB and isinstance(nodeA, BoundaryNode) :
 				result.append(nodeA)
-		return result
+		return sorted(result)
 	#
 	def apparentDegree(self, node) :
 		"""
@@ -307,6 +307,13 @@ class Configuration :
 		Precisely, returns a list of nodes that form a minimal closed
 		walk that traverses each outerNode at least once and traverses
 		no non-outer nodes.
+		
+		The result will be the first possible result measured by
+		lexicographic order by node name.  For example, if "a" is
+		the first outer node by name, it will be the first in
+		outerNodeCycle, and it will prefer "b" to be the next
+		rather than "c", thus determining which way around the
+		cycle goes.
 		
 		The result is undefined when no such walk exists; e.g. a large
 		tyre made up of a thick layer of nodes.  Such graphs would
@@ -411,10 +418,20 @@ class Configuration :
 		#
 	def addBoundary(self) :
 		"""
-		Add boundary nodes (assumes that the configuartion is triangulated).
-		 In cases like:
-		     (5) -- (7) -- (5)
-		 the behavior of this function will be undefined.
+		Add boundary nodes (assumes that the configuration is
+		triangulated).
+
+		The boundary nodes start next to the lexicographically first
+		outer node and point in the direction towards the next
+		(assuming there are at least three outer nodes; otherwise
+		this is meaningless).  The first node in the boundary cycle
+		is, given that direction, the earliest one that's joined to
+		the lexicographically first outer node.
+
+		In cases like:
+		    (5) -- (7) -- (5)
+		the behavior of this function will be undefined.
+
 		Use:
 		>>> config = Configuration([Node("a")], [])
 		>>> config.addBoundary()
@@ -505,8 +522,8 @@ class Configuration :
 					self.addEdge(boundaryNode, node)
 					if newBNi > 0 :
 						self.addEdge(boundaryNode, newBoundaryNodes[newBNi - 1])
-		unorderedBoundaryNodes = [node for node in self.nodes.values() if
-						isinstance(node, BoundaryNode)]
+		unorderedBoundaryNodes = sorted([node for node in self.nodes.values() if
+							isinstance(node, BoundaryNode)])
 		if len(unorderedBoundaryNodes) <= 2:
 			orderedBoundaryNodes = unorderedBoundaryNodes
 		else:
@@ -540,7 +557,7 @@ class Configuration :
 		>>> len(config.getBoundaryCycle())
 		4
 		>>> config.getBoundaryNeighbors(config.nodes["b#3"])
-		[b#2, b#0]
+		[b#0, b#2]
 		>>> config = Configuration([Node("a", 3)], [])
 		>>> len(config.getBoundaryCycle())
 		3
