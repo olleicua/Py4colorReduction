@@ -961,12 +961,12 @@ class Configuration :
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible(True)
+		>>> config.isCreducible()
 		(C) birkhoff diamond
 		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
+		>>> config.isCreducible(True)
 		(C) bernhart diamond
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
