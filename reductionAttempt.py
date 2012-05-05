@@ -724,7 +724,7 @@ class Configuration :
 			base = nodes[0]
 			rest = nodes[1:]
 			for node in rest :
-				assert not testConfig.isEdge(base, node), """
+				assert not self.isEdge(base, node), """
 					Nodes that must be different colors due to an edge
 					cannot be merged to have the same color as each other!
 					"""
