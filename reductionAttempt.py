@@ -820,26 +820,28 @@ class Configuration :
 		Return True if the is at least one valid coloring of the
 		non-boundary nodes.
 		"""
-		return self.findColoring(givenColoringOfSomeNodes) != None
+		for coloring in self.findColorings(givenColoringOfSomeNodes) :
+			return True
+		return False
 	def findColoring(self, givenColoringOfSomeNodes = {}) :
 		"""
 		Return a valid coloring, or None if none exists.
 		"""
+		for coloring in self.findColorings(givenColoringOfSomeNodes) :
+			return coloring
+		return None
+	def findColorings(self, givenColoringOfSomeNodes = {}) :
 		uncoloredNodes = [node for node in self.nodes.values()
 					  if node not in givenColoringOfSomeNodes]
 		if len(uncoloredNodes) == 0 :
-			return givenColoringOfSomeNodes
+			yield givenColoringOfSomeNodes
 		nextNode = uncoloredNodes[0]
 		nextColors = self.allowedColors(nextNode, givenColoringOfSomeNodes)
-		if len(nextColors) == 0 :
-			return None
 		for color in nextColors :
 			tryColoring = givenColoringOfSomeNodes.copy()
 			tryColoring[nextNode] = color
-			coloringHere = self.findColoring(tryColoring)
-			if coloringHere != None :
-				return coloringHere
-		return None
+			for coloring in self.findColorings(tryColoring) :
+				yield coloring
 	#
 	def isAreducible(self) :
 		"""
