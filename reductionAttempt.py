@@ -830,17 +830,17 @@ class Configuration :
 		for coloring in self.findColorings(givenColoringOfSomeNodes) :
 			return coloring
 		return None
-	def findColorings(self, givenColoringOfSomeNodes = {}) :
-		uncoloredNodes = [node for node in self.nodes.values()
-					  if node not in givenColoringOfSomeNodes]
-		if len(uncoloredNodes) == 0 :
-			yield givenColoringOfSomeNodes
-		nextNode = uncoloredNodes[0]
-		nextColors = self.allowedColors(nextNode, givenColoringOfSomeNodes)
-		for color in nextColors :
-			tryColoring = givenColoringOfSomeNodes.copy()
+	def findColorings(self, givenColoring = {}, nodesToColor = None) :
+		if nodesToColor == None :
+			nodesToColor = [node for node in self.nodes.values() if node not in givenColoring]
+		if len(nodesToColor) == 0 :
+			yield givenColoring
+		nodesToColor = copy.copy(nodesToColor)
+		nextNode = nodesToColor.pop()
+		for color in self.allowedColors(nextNode, givenColoring) :
+			tryColoring = givenColoring.copy()
 			tryColoring[nextNode] = color
-			for coloring in self.findColorings(tryColoring) :
+			for coloring in self.findColorings(tryColoring, nodesToColor) :
 				yield coloring
 	#
 	def isAreducible(self) :
