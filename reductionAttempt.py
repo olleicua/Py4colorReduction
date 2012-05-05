@@ -182,6 +182,22 @@ class Configuration :
 		"""
 		return tuple(sorted((nodeA, nodeB))) in self.adjacencyList
 	#
+	def addNode(self, node) :
+		"""
+		Adds a node to the graph.
+		>>> config = Configuration()
+		>>> config.addNode(Node("a"))
+		>>> config.addNode(Node("b"))
+		>>> sorted(config.nodes.items())
+		[('a', a_5), ('b', b_5)]
+		>>> config.addNode(Node("a"))
+		Traceback (most recent call last):
+		    ...
+		AssertionError: no duplicate nodes!
+		"""
+		assert node.name not in self.nodes, "no duplicate nodes!"
+		self.nodes[node.name] = node
+	#
 	def mergeNodes(self, mergeNodeA, mergeNodeB) :
 		"""
 		Merges node B into node A.
