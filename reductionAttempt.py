@@ -157,6 +157,9 @@ class Configuration :
 		"""
 		Use:
 		>>> config = Configuration([Node("a"), Node("b", 7)], [])
+		>>> config.addEdge(config["a"], config["a"])
+		>>> config.adjacencyList
+		[]
 		>>> config.addEdge(config["a"], config["b"])
 		>>> config.adjacencyList
 		[(a_5, b_7)]
@@ -164,7 +167,7 @@ class Configuration :
 		>>> config.adjacencyList
 		[(a_5, b_7)]
 		"""
-		if not tuple(sorted((nodeA, nodeB))) in self.adjacencyList :
+		if nodeA != nodeB and not tuple(sorted((nodeA, nodeB))) in self.adjacencyList :
 			self.adjacencyList.append(tuple(sorted((nodeA, nodeB))))
 		#
 	def isEdge(self, nodeA, nodeB) :
