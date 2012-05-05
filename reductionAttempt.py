@@ -652,7 +652,7 @@ class Configuration :
 			# main configuration,
 			# has edges from cycle[0] to every other node in
 			# cycle (the boundary cycle).
-			if len(self.nodes.values())-len(self.getBoundaryCycle()) > 1:
+			if len(self.nodes.values())-len(cycle) > 1:
 				colorsToTry = list( \
 					set(self.allowedColors(cycle[index])) - \
 						set(cycle[index].colorsTried) - \
