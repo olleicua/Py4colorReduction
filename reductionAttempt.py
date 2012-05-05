@@ -666,10 +666,10 @@ class Configuration :
 				cycle[index].color = None
 				cycle[index].colorsTried = set()
 				index -= 1
-				continue
-			cycle[index].color = colorsToTry[0]
-			cycle[index].colorsTried.add(colorsToTry[0])
-			index += 1
+			else :
+				cycle[index].color = colorsToTry[0]
+				cycle[index].colorsTried.add(colorsToTry[0])
+				index += 1
 		cycle[0].color = None
 		cycle[1].color = None
 		#
