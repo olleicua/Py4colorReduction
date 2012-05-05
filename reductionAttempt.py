@@ -146,7 +146,9 @@ class Configuration :
 		# build adjacency list using nodes instead of node names
 		self.adjacencyList = []
 		for nodeA, nodeB in adjacencyList :
-			self.addEdge(self.nodes[nodeA], self.nodes[nodeB])
+			a = self.nodes[nodeA] if isinstance(nodeA, str) else nodeA
+			b = self.nodes[nodeB] if isinstance(nodeB, str) else nodeB
+			self.addEdge(a, b)
 		#
 	def __getitem__(self, name) :
 		return self.nodes[name]
