@@ -710,8 +710,8 @@ class Configuration :
 		-...                         ("d", "a"), ("b", "d")])
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> for coloring in config.generatePossibleBoundaryColorings():
-		...     print coloring.values(), ":"
-		...     def toList(sets): return [s.values() for s in sets]
+		...     print valuesSortedByKeys(coloring), ":"
+		...     def toList(dicts): return [valuesSortedByKeys(s) for s in dicts]
 		...     r,g,b,y = COLORS
 		...     print r+g+'/'+b+y+':', \
 		            toList(config.generatePossibleKempeChainConnectivitySets(coloring, (r, g)))
