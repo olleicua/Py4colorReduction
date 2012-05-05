@@ -992,9 +992,10 @@ class Configuration :
 	#
 	def kempeChainsAllowReduction(self, coloring, colorPair, kempeChains) :
 		for chains in powerset(set(kempeChains.values())) :
+			newColoring = coloring
 			for chain in chains:
-				coloring = self.swapKempeChain(coloring, colorPair, chain, kempeChains)
-			if self.isColorable(coloring) :
+				newColoring = self.swapKempeChain(newColoring, colorPair, chain, kempeChains)
+			if self.isColorable(newColoring) :
 				return True
 		return False
 	#
