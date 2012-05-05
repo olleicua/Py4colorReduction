@@ -85,7 +85,7 @@ class BoundaryNode :
 	def __init__(self, name) :
 		self.name = name
 		self.color = None
-		self.colorsTried = []
+		self.colorsTried = set()
 		self.cycleNumber = None
 		#
 	def __repr__(self) :
@@ -655,20 +655,20 @@ class Configuration :
 			if len(self.nodes.values())-len(cycle) > 1:
 				colorsToTry = list( \
 					set(self.allowedColors(cycle[index])) - \
-						set(cycle[index].colorsTried) - \
+					cycle[index].colorsTried - \
 					set(COLORS[3]) )
 			else:
 				colorsToTry = list( \
 					set(self.allowedColors(cycle[index])) - \
-					set(cycle[index].colorsTried) - \
+					cycle[index].colorsTried - \
 					set(COLORS[0]) )
 			if len(colorsToTry) == 0 :
 				cycle[index].color = None
-				cycle[index].colorsTried = []
+				cycle[index].colorsTried = set()
 				index -= 1
 				continue
 			cycle[index].color = colorsToTry[0]
-			cycle[index].colorsTried.append(colorsToTry[0])
+			cycle[index].colorsTried.add(colorsToTry[0])
 			index += 1
 		cycle[0].color = None
 		cycle[1].color = None
