@@ -631,6 +631,11 @@ class Configuration :
 		"""
 		Returns a list of the boundary nodes in cyclic order.
 		Automatically adds a boundary if it isn't there already.
+		
+		If there are extra BoundaryNodes not in the cycle,
+		returns them too, sorted in lexicographic order by name
+		(generatePossibleBoundaryColorings* currently rely on this).
+		
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
@@ -681,53 +686,60 @@ class Configuration :
 		"""
 		cycle = self.getBoundaryCycle()
 		return self.findColorings(skipSameUpToColorRenaming = True, nodesToColor = cycle)
-	def generatePossibleBoundaryColoringsTryingCReduction(self) :
-		tryingCreduction = True
+	def generatePossibleBoundaryColoringsGivenSmallerConfiguration(self,
+			setsOfBoundaryNodesToMerge = [], newEdges = [], newNodes = []) :
 		cycle = self.getBoundaryCycle()
-		coloring = {} # node -> color
-		colorsTried = {} # node -> set of color
-		assert len(cycle) >= 2, "Boundary too small"
-		coloring[cycle[0]] = COLORS[0]
-		coloring[cycle[1]] = COLORS[1]
-		if tryingCreduction :
-			coloring[cycle[2]] = COLORS[0]
-			firstUndeterminedIndex = 3
-		else:
-			firstUndeterminedIndex = 2
-		index = firstUndeterminedIndex
-		colorsTried[cycle[index]] = set()
-		while True :
-			# We subtract COLORS[0] because the smaller map we
-			# are imagining (arbitrarily, for our convenience),
-			# in addition to having none of the nodes in the
-			# main configuration,
-			# has edges from cycle[0] to every other node in
-			# cycle (the boundary cycle).
-			if len(self.nodes)-len(cycle) > 1:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index], coloring)) - \
-					colorsTried[cycle[index]] - \
-					set(COLORS[3]) )
-			else:
-				colorsToTry = list( \
-					set(self.allowedColors(cycle[index], coloring)) - \
-					colorsTried[cycle[index]] - \
-					set(COLORS[0]) )
-			if len(colorsToTry) == 0 :
-				del coloring[cycle[index]]
-				del colorsTried[cycle[index]]
-				index -= 1
-				if index < firstUndeterminedIndex :
-					break
-			else :
-				coloring[cycle[index]] = colorsToTry[0]
-				colorsTried[cycle[index]].add(colorsToTry[0])
-				if index + 1 == len(cycle) :
-					yield coloring
-				else :
-					index += 1
-					colorsTried[cycle[index]] = set()
+		testConfig = Configuration(
+				cycle,
+				filter(lambda (a,b): isinstance(a,BoundaryNode)
+				                 and isinstance(b,BoundaryNode),
+				       self.adjacencyList))
+		mapFromMainToTestNodes = {}
+		for node in cycle :
+			mapFromMainToTestNodes[node] = node
+		# The order of adding nodes, adding edges, then
+		# deleting(merging) nodes is important here.
+		for node in newNodes :
+			testConfig.addNode(node)
+		for a,b in newEdges :
+			testConfig.addEdge(a, b)
+		for nodeSet in setsOfBoundaryNodesToMerge :
+			nodes = list(set(nodeSet))
+			base = nodes[0]
+			rest = nodes[1:]
+			for node in rest :
+				testConfig.mergeNodes(base, node)
+				mapFromMainToTestNodes[node] = base
+		assert len(testConfig.nodes) < len(self.nodes), \
+			"This config isn't smaller, so the math proof usefulness of this boundary-coloring is nil."
+		# TODO can we also test the planarity of this test config, and
+		# the original-nodes-are-still-all-connected-to-the-infinite-region
+		# -ness of it?
+		for testColoring in testConfig.generatePossibleBoundaryColorings() :
+			coloring = {}
+			for main, test in mapFromMainToTestNodes.iteritems() :
+				coloring[main] = testColoring[test]
+			yield coloring
+	#
+	def generatePossibleBoundaryColoringsTryingCReduction(self) :
+		cycle = self.getBoundaryCycle()
+		newNodes = []
+		newEdges = []
+		setsOfBoundaryNodesToMerge = []
+		if len(self.nodes) - len(cycle) > 1 :
+			centerNode = BoundaryNode("b#center") #only valid for config size > 1
+			newNodes.append(centerNode)
+			for node in cycle :
+				newEdges.append((centerNode, node))
+		elif len(cycle) > 0 :
+			for node in cycle :
+				newEdges.append((cycle[0], node))
+		if len(cycle) >= 4 :
+			setsOfBoundaryNodesToMerge.append([cycle[0], cycle[2]])
 		#
+		return self.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
+				setsOfBoundaryNodesToMerge, newEdges, newNodes)
+	#
 	def generatePossibleKempeChainConnectivitySets(self, boundaryColoring, colorPair) :
 		"""
 		Automatically adds a boundary if it isn't there already.
