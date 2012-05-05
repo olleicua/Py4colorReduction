@@ -724,6 +724,10 @@ class Configuration :
 			base = nodes[0]
 			rest = nodes[1:]
 			for node in rest :
+				assert not testConfig.isEdge(base, node), """
+					Nodes that must be different colors due to an edge
+					cannot be merged to have the same color as each other!
+					"""
 				testConfig.mergeNodes(base, node)
 				mapFromMainToTestNodes[node] = base
 		assert len(testConfig.nodes) < len(self.nodes), \
@@ -731,6 +735,8 @@ class Configuration :
 		# TODO can we also test the planarity of this test config, and
 		# the original-nodes-are-still-all-connected-to-the-infinite-region
 		# -ness of it?
+		# What about the math problems with large rings, node merging, and
+		# whether they were the same nodes already?
 		for testColoring in testConfig.generatePossibleBoundaryColorings() :
 			coloring = {}
 			for main, test in mapFromMainToTestNodes.iteritems() :
