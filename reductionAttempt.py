@@ -215,6 +215,9 @@ class Configuration :
 		[('b', b_5), ('c', c_5), ('d', d_5)]
 		>>> sorted(config.adjacencyList)
 		[(b_5, c_5), (b_5, d_5), (c_5, d_5)]
+		>>> config.mergeNodes(config.nodes["b"], config.nodes["c"])
+		>>> sorted(config.adjacencyList)
+		[(b_5, d_5)]
 		"""
 		def toA(node) :
 			if node == mergeNodeB :
