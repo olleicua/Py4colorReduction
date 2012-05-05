@@ -33,6 +33,15 @@ def valuesSortedByKeys(dict) :
 
 COLOR_PAIRS = ["RB", "RG", "RY"]
 COLORS = ["R", "G", "B", "Y"]
+
+# colorSorted():
+# Or should we just order the colors alphabetically B,G,R,Y?
+# Or refer to them by number and have to explicitly translate to
+# color-name in the tests and such?
+
+def colorSorted(colorCollection) :
+	return [color for color in COLORS if color in colorCollection ]
+
 def colorToCSSColor(colorID) :
 	if colorID == None: return None
 	elif colorID == "R": return "#ff0000"
@@ -820,27 +829,52 @@ class Configuration :
 		Return True if the is at least one valid coloring of the
 		non-boundary nodes.
 		"""
-		for coloring in self.findColorings(givenColoringOfSomeNodes) :
+		for coloring in self.findColorings(givenColoringOfSomeNodes, True) :
 			return True
 		return False
 	def findColoring(self, givenColoringOfSomeNodes = {}) :
 		"""
 		Return a valid coloring, or None if none exists.
 		"""
-		for coloring in self.findColorings(givenColoringOfSomeNodes) :
+		for coloring in self.findColorings(givenColoringOfSomeNodes, True) :
 			return coloring
 		return None
-	def findColorings(self, givenColoring = {}, nodesToColor = None) :
+	def findColorings(self, givenColoring = {}, skipSameUpToColorRenaming = False, nodesToColor = None) :
 		if nodesToColor == None :
-			nodesToColor = [node for node in self.nodes.values() if node not in givenColoring]
+			nodesToColor = [node for node in valuesSortedByKeys(self.nodes) if node not in givenColoring]
+		if skipSameUpToColorRenaming :
+			# verbotenColors is a list so it's ordered by
+			# canonical color order (which is nicer). It's
+			# short enough that speed difference is unimportant.
+			# It contains all currently-used colors plus one
+			# not-yet-used color (which is equivalent to the
+			# other unused colors, thus those other unused colors
+			# are arbitrarily verboten until the first unused
+			# color is used so arbitrarily the next one is
+			# then not verboten).
+			usedColors = set(givenColoring.itervalues())
+			verbotenColors = [color for color in COLORS if color not in usedColors][1:]
+		else:
+			usedColors = None
+			verbotenColors = None
+		return self.findColoringsImpl(givenColoring, nodesToColor, skipSameUpToColorRenaming,
+				usedColors, verbotenColors)
+	def findColoringsImpl(self, givenColoring, nodesToColor, skipSameUpToColorRenaming, usedColors, verbotenColors) :
 		if len(nodesToColor) == 0 :
 			yield givenColoring
-		nodesToColor = copy.copy(nodesToColor)
-		nextNode = nodesToColor.pop()
-		for color in self.allowedColors(nextNode, givenColoring) :
+		nextNode = nodesToColor[0]
+		nodesToColor = nodesToColor[1:]
+		for color in colorSorted(self.allowedColors(nextNode, givenColoring)) :
+			if skipSameUpToColorRenaming :
+				if color in verbotenColors :
+					continue
+				elif color not in usedColors :
+					usedColors = usedColors | set(color)
+					verbotenColors = verbotenColors[1:]
 			tryColoring = givenColoring.copy()
 			tryColoring[nextNode] = color
-			for coloring in self.findColorings(tryColoring, nodesToColor) :
+			for coloring in self.findColoringsImpl(tryColoring, nodesToColor, skipSameUpToColorRenaming,
+						usedColors, verbotenColors) :
 				yield coloring
 	#
 	def isAreducible(self) :
@@ -1037,9 +1071,9 @@ class Configuration :
 		>>> sys.stdout.write(config.toDotGraph(coloring))
 		graph {
 		node [style="filled"]
-		"a_5" [fillcolor="#ffff00"]
-		"b_5" [fillcolor="#0000ff"]
-		"c_5" [fillcolor="#ff0000"]
+		"a_5" [fillcolor="#ff0000"]
+		"b_5" [fillcolor="#00ff00"]
+		"c_5" [fillcolor="#0000ff"]
 		"a_5" -- "b_5"
 		"a_5" -- "c_5"
 		"b_5" -- "c_5"
