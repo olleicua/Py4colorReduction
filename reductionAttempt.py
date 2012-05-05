@@ -126,7 +126,7 @@ class Configuration :
 	The initial configurations should be already triangulated as we have no
 	 clearly defined algorithm to triangulate them.
 	"""
-	def __init__(self, nodes, adjacencyList) :
+	def __init__(self, nodes = [], adjacencyList = []) :
 		"""
 		nodes is a list of Node objects
 		adjacencyList is a list of pairs (sorted tuples) of nodes names
