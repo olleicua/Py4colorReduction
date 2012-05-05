@@ -862,6 +862,7 @@ class Configuration :
 	def findColoringsImpl(self, givenColoring, nodesToColor, skipSameUpToColorRenaming, usedColors, verbotenColors) :
 		if len(nodesToColor) == 0 :
 			yield givenColoring
+			return
 		nextNode = nodesToColor[0]
 		nodesToColor = nodesToColor[1:]
 		for color in colorSorted(self.allowedColors(nextNode, givenColoring)) :
