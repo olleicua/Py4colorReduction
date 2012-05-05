@@ -260,6 +260,22 @@ class Configuration :
 		# BUT WAIT its consistency will be broken because of the ordering
 		self.adjacencyList = [tuple(sorted(pair)) for pair in self.adjacencyList]
 	#
+	def isEdge(self, a, b) :
+		"""
+		Use:
+		>>> config = Configuration([Node("a"), Node("b"), Node("c")], [("a", "b")])
+		>>> config.isEdge(config["a"], config["b"])
+		True
+		>>> config.isEdge(config["a"], config["c"])
+		False
+		>>> config.isEdge(config["a"], config["a"])
+		False
+
+		The last example is particularly relevant for coloring:
+		it would be a travesty if a node had to be a different
+		color as itself.
+		"""
+		return tuple(sorted((a,b))) in self.adjacencyList
 	def getNeighbors(self, node) :
 		"""
 		Use:
