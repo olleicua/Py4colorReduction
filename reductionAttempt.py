@@ -866,16 +866,18 @@ class Configuration :
 		nextNode = nodesToColor[0]
 		nodesToColor = nodesToColor[1:]
 		for color in colorSorted(self.allowedColors(nextNode, givenColoring)) :
+			newUsedColors = usedColors
+			newVerbotenColors = verbotenColors
 			if skipSameUpToColorRenaming :
 				if color in verbotenColors :
 					continue
 				elif color not in usedColors :
-					usedColors = usedColors | set(color)
-					verbotenColors = verbotenColors[1:]
+					newUsedColors = usedColors | set(color)
+					newVerbotenColors = verbotenColors[1:]
 			tryColoring = givenColoring.copy()
 			tryColoring[nextNode] = color
 			for coloring in self.findColoringsImpl(tryColoring, nodesToColor, skipSameUpToColorRenaming,
-						usedColors, verbotenColors) :
+						newUsedColors, newVerbotenColors) :
 				yield coloring
 	#
 	def isAreducible(self) :
