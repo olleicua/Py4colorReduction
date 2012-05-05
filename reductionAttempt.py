@@ -637,7 +637,7 @@ class Configuration :
 		return sorted([node for node in self.nodes.values() if
 					isinstance(node, BoundaryNode)])
 		#
-	def generatePossibleBoundaryColorings(self, tryingCreduction=False) :
+	def generatePossibleBoundaryColorings(self) :
 		"""
 		A generator that produces all possible colorings of the boundary nodes,
 		modulo renaming of colors.
@@ -645,16 +645,20 @@ class Configuration :
 		>>> def getColorings(config) :
 		...     return [valuesSortedByKeys(coloring) for coloring in config.generatePossibleBoundaryColorings()]
 		>>> getColorings(config)
-		[['R', 'G', 'Y'], ['R', 'G', 'B']]
+		[['R', 'G', 'B']]
 		>>> config = Configuration([Node("a")], [])
 		>>> sorted(map(lambda colors: ''.join(colors), getColorings(config)))
-		['RGBGB', 'RGBGY', 'RGBYB', 'RGBYG', 'RGYBG', 'RGYBY', 'RGYGB', 'RGYGY']
+		['RGBGB', 'RGBGY', 'RGBRB', 'RGBRG', 'RGBRY', 'RGBYB', 'RGBYG', 'RGRBG', 'RGRBY', 'RGRGB']
 		>>> config = Configuration([Node("a", 4), Node("b", 4), Node("c", 4)],
 		...                        [("a", "b"), ("b", "c"), ("a", "c")])
 		>>> getColorings(config)
-		[['R', 'G', 'Y'], ['R', 'G', 'B']]
+		[['R', 'G', 'B']]
 
 		"""
+		cycle = self.getBoundaryCycle()
+		return self.findColorings(skipSameUpToColorRenaming = True, nodesToColor = cycle)
+	def generatePossibleBoundaryColoringsTryingCReduction(self) :
+		tryingCreduction = True
 		cycle = self.getBoundaryCycle()
 		coloring = {} # node -> color
 		colorsTried = {} # node -> set of color
@@ -1038,7 +1042,7 @@ class Configuration :
 		(C) example 5 from rsst
 		"""
 		testConfig = copy.deepcopy(self)
-		for coloring in testConfig.generatePossibleBoundaryColorings(True) :
+		for coloring in testConfig.generatePossibleBoundaryColoringsTryingCReduction() :
 			if not testConfig.isColorable(coloring) :
 				kempeArgumentFound = False
 				for colorPair in COLOR_PAIRS :
