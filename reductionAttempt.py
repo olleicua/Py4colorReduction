@@ -1,9 +1,49 @@
 """
-TODO: add better docs here
 
-added test result file.  Generate it with:
+TYPES, described in prose because Python does not have a way to
+describe them all formally.
 
- python reductionAttempt.py > testResults.txt
+color: One of the four colors that we are trying to color with.
+  Represented as strings "R", "G", "B", "Y".
+  Their order (when applicable) is defined by list COLORS and
+      function colorSorted.
+  (TODO: make it a class with cmp, hash, repr?)
+
+node: A node in the configuration.
+  It has a name (string) and conceptual degree
+  (which may be higher than the number of edges,
+  in the absence of an explicit boundary ring of nodes).
+  Represented by an object (class Node).
+
+boundary node: A node in the boundary ring.
+  It has a name (string) and cycle number.
+  (Every boundary ring is a cycle of nodes,
+  so we number them for convenience, picking some
+  arbitrary cycle-direction and starting node.
+  It's not completely arbitrary; see "addBoundary"
+  for details.)
+  Represented by an object (class BoundaryNode).
+
+Nodes and boundary nodes are usually interchangable
+in the following.  Their sorting is by name.
+
+configuration: A collection of nodes and edges.
+  (Nodes may or may not include boundary nodes.)
+  Nodes are a dict from name to node.
+  Edges are a list of pairs of nodes.  The pairs
+  are sorted by node.  The list is unsorted.
+  Edges from a node to itself, or multiple edges
+  between the same two nodes, are forbidden.
+  Every node mentioned by an edge must be in the nodes dict.
+  Represented by class Configuration.
+
+coloring: a dict from node to color.
+  It does not have to include all nodes in a configuration;
+  for example, we have colorings of just boundary nodes
+  before we use them to see if we can color the rest
+  of the nodes in that case.
+
+kempe chain: kempeChains
 
 """
 
@@ -372,9 +412,6 @@ class Configuration :
 	#
 	def allowedColors(self, node, coloring) :
 		"""
-		A coloring is a dict from node to color; it does
-		not have to include all nodes in the graph.
-		
 		>>> config = Configuration([Node("a"), Node("b")],
 		...                        [("a", "b")])
 		>>> coloring = { config["a"]: "R" }
