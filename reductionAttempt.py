@@ -1009,9 +1009,9 @@ class Configuration :
 				return False
 		return True
 	#
-	def swapKempeChain(self, coloring, colorPair, chain, kempeChains) :
+	def swapKempeChain(self, coloring, colorPair, chainNumber, kempeChains) :
 		result = coloring.copy()
-		for boundaryNode in [n for n in kempeChains.keys() if kempeChains[n] == chain] :
+		for boundaryNode in [n for n in kempeChains.keys() if kempeChains[n] == chainNumber] :
 			color = coloring[boundaryNode]
 			if color in colorPair :
 				if color == colorPair[0] :
@@ -1027,11 +1027,15 @@ class Configuration :
 			result[boundaryNode] = newColor
 		return result
 	#
+	def swapKempeChains(self, coloring, colorPair, chainNumbers, kempeChains) :
+		newColoring = coloring
+		for chainNumber in chainNumbers:
+			newColoring = self.swapKempeChain(newColoring, colorPair, chainNumber, kempeChains)
+		return newColoring
+	#
 	def kempeChainsAllowReduction(self, coloring, colorPair, kempeChains) :
-		for chains in powerset(set(kempeChains.values())) :
-			newColoring = coloring
-			for chain in chains:
-				newColoring = self.swapKempeChain(newColoring, colorPair, chain, kempeChains)
+		for chainNumbers in powerset(set(kempeChains.values())) :
+			newColoring = self.swapKempeChains(coloring, colorPair, chainNumbers, kempeChains)
 			if self.isColorable(newColoring) :
 				return True
 		return False
