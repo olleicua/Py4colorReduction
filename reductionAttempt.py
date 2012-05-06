@@ -57,6 +57,13 @@ kempe chain set: a consistent set of kempe chains that collectively
   Its meaning depends on which color-pair it is for.
   Represented by a frozenset of kempe chains.
 
+kempe chain set possibilities: in the context of a configuration,
+      a colored boundary ring, and a color-pair, this is a set of
+      all the different possible kempe chain sets, at least one of
+      which must be true.
+  Its meaning depends on which color-pair it is for.
+  Represented by a list of kempe chain sets.
+
 """
 
 import itertools, copy, sys, os
@@ -811,7 +818,7 @@ class Configuration :
 		return self.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
 				setsOfBoundaryNodesToMerge, newEdges, newNodes)
 	#
-	def generatePossibleKempeChainConnectivitySets(self, boundaryColoring, colorPair) :
+	def findKempeChainSetPossibilities(self, boundaryColoring, colorPair) :
 		"""
 		Automatically adds a boundary if it isn't there already.
 		Results in a large number of sets like, if there are five
@@ -825,11 +832,11 @@ class Configuration :
 		...     def toList(setss): return sorted(sorted(sorted(set) for set in sets) for sets in setss)
 		...     r,g,b,y = COLORS
 		...     print r+g+'/'+b+y+':', \
-		            toList(config.generatePossibleKempeChainConnectivitySets(coloring, (r, g)))
+		            toList(config.findKempeChainSetPossibilities(coloring, (r, g)))
 		...     print r+b+'/'+g+y+':', \
-		            toList(config.generatePossibleKempeChainConnectivitySets(coloring, (r, b)))
+		            toList(config.findKempeChainSetPossibilities(coloring, (r, b)))
 		...     print r+y+'/'+g+b+':', \
-		            toList(config.generatePossibleKempeChainConnectivitySets(coloring, (r, y)))
+		            toList(config.findKempeChainSetPossibilities(coloring, (r, y)))
 		..yeah.
 
 		[set([a, c]), set([b]), set([d, e])]
@@ -853,10 +860,12 @@ class Configuration :
 		cycle = self.getBoundaryCycle()
 		result = []
 		def weFoundAResult(kempeChains) :
+			# temp dict from chain number to set of nodes in the chain
 			chains = {}
 			for cycleIndex, chainNumber in kempeChains.iteritems() :
 				chains.setdefault(chainNumber, set()).add(cycle[cycleIndex])
-			result.append(frozenset(frozenset(chain) for chain in chains.values()))
+			kempeChainSet = frozenset(frozenset(chain) for chain in chains.values())
+			result.append(kempeChainSet)
 		#
 		# nested function
 		def tryNext(i, kempeChainsSoFar, numKempeChainsSoFar, occludedSet) :
@@ -1045,16 +1054,16 @@ class Configuration :
 			newColoring = self.swapKempeChain(newColoring, colorPair, kempeChain)
 		return newColoring
 	#
-	def kempeChainsAllowReduction(self, coloring, colorPair, kempeChains) :
-		for kempeChainsToSwap in powerset(kempeChains) :
+	def kempeChainSetAllowsReduction(self, coloring, colorPair, kempeChainSet) :
+		for kempeChainsToSwap in powerset(kempeChainSet) :
 			newColoring = self.swapKempeChains(coloring, colorPair, kempeChainsToSwap)
 			if self.isColorable(newColoring) :
 				return True
 		return False
 	#
-	def connectivitySetsAllowReduction(self, coloring, colorPair, connectivitySets) :
-		for kempeChains in connectivitySets :
-			if not self.kempeChainsAllowReduction(coloring, colorPair, kempeChains) :
+	def kempePossibilitiesAllowReduction(self, coloring, colorPair, kempeChainSetPossibilities) :
+		for kempeChains in kempeChainSetPossibilities :
+			if not self.kempeChainSetAllowsReduction(coloring, colorPair, kempeChains) :
 				return False
 		return True
 	#
@@ -1102,8 +1111,8 @@ class Configuration :
 			if not testConfig.isColorable(coloring) :
 				kempeArgumentFound = False
 				for colorPair in COLOR_PAIRS :
-					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(coloring, colorPair)
-					if testConfig.connectivitySetsAllowReduction(coloring, colorPair, connectivitySets) :
+					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPair)
+					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPair, kempeChainSetPossibilities) :
 						kempeArgumentFound = True
 						break
 				if not kempeArgumentFound :
@@ -1158,8 +1167,8 @@ class Configuration :
 			if not testConfig.isColorable(coloring) :
 				kempeArgumentFound = False
 				for colorPair in COLOR_PAIRS :
-					connectivitySets = testConfig.generatePossibleKempeChainConnectivitySets(coloring, colorPair)
-					if testConfig.connectivitySetsAllowReduction(coloring, colorPair, connectivitySets) :
+					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPair)
+					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPair, kempeChainSetPossibilities) :
 						kempeArgumentFound = True
 						break
 				if not kempeArgumentFound :
