@@ -1226,7 +1226,7 @@ class Configuration :
 						os.system("neato -Tpng test.dot > test.png")
 					return False
 		return True
-	def toDotGraph(self, coloring = {}) :
+	def toDotGraph(self, coloring = {}, kempe = (None, frozenset(), frozenset())) :
 		"""
 		Returns a text string in GraphViz .dot format.
 		It works pretty well with the 'neato' layout engine.
@@ -1234,6 +1234,7 @@ class Configuration :
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
 		>>> sys.stdout.write(config.toDotGraph())
 		graph {
+		graph [overlap="false"]
 		node [style="filled"]
 		"a_5" []
 		"b_5" []
@@ -1247,6 +1248,7 @@ class Configuration :
 		True
 		>>> sys.stdout.write(config.toDotGraph(coloring))
 		graph {
+		graph [overlap="false"]
 		node [style="filled"]
 		"a_5" [fillcolor="#ff0000"]
 		"b_5" [fillcolor="#00ff00"]
@@ -1259,17 +1261,35 @@ class Configuration :
 		>>> config.toDotGraph().count("\\n")
 		30
 		"""
+		colorPairPair, kempeChainSet, kempeChainsFlipped = kempe
+		nodesFlipped = frozenset(itertools.chain.from_iterable(kempeChainsFlipped)) #a.k.a. flatten
 		results = []
-		results.append('graph {\nnode [style="filled"]\n')
+		results.append('''graph {\ngraph [overlap="false"]\nnode [style="filled"]\n''')
+		numBoundaryNodes = len(filter(lambda n: isinstance(n, BoundaryNode), self.nodes.values()))
 		for node in sorted(self.nodes.values()) :
 			opts = []
 			if node in coloring :
 				opts.append('fillcolor="%s"' % colorToCSSColor(coloring[node]))
 			if isinstance(node, BoundaryNode) :
 				opts.append('style="filled,dashed"')
+				opts.append('pos="%f,%f"' % (
+					2 + 5*math.cos(math.pi/2 - 2*math.pi*(node.cycleNumber/numBoundaryNodes)),
+					2 + 5*math.sin(math.pi/2 - 2*math.pi*(node.cycleNumber/numBoundaryNodes))))
+			if node in nodesFlipped :
+				opts.append('penwidth="7"')
 			results.append('"%s" [%s]\n' % (str(node), ','.join(opts)))
 		for nodeA, nodeB in sorted(self.adjacencyList) :
 			results.append('"%s" -- "%s"\n' % (str(nodeA), str(nodeB)))
+		chainNum = 1
+		for kempeChain in sorted(sorted(k) for k in kempeChainSet) :
+			little = len(kempeChain) == 1
+			c1, c2 = whichColorPair(coloring[tuple(kempeChain)[0]], colorPairPair)
+			results.append('''"chain%d" [label="chain",fontcolor="#aaaaaa",color="%s",fillcolor="%s",penwidth="7",shape="box",style="filled"]\n''' \
+				% (chainNum, colorToCSSColor(c1), colorToCSSColor(c2)))
+			for node in kempeChain :
+				results.append('''"chain%d" -- "%s" [weight="0",len="%f",color="%s",penwidth="3"]\n''' \
+					% (chainNum, str(node), 1 if little else 1.5, colorToCSSColor(colorOpposite(coloring[node], colorPairPair))))
+			chainNum += 1
 		results.append("}\n")
 		return ''.join(results)
 
