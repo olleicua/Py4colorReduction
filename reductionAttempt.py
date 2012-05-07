@@ -1090,25 +1090,41 @@ class Configuration :
 			newColoring = self.swapKempeChain(newColoring, colorPairPair, kempeChain)
 		return newColoring
 	#
-	def kempeChainSetAllowsReduction(self, coloring, colorPairPair, kempeChainSet) :
+	def findKempeChainSetReduction(self, coloring, colorPairPair, kempeChainSet) :
+		"""
+		Returns kempeChainsToSwap, fullColoring (or None if it can't find any)
+		chains: the collection of Kempe chains to swap
+		fullColoring: the resulting successful coloring of boundary and configuration nodes.
+		"""
 		for kempeChainsToSwap in powerset(kempeChainSet) :
-			newColoring = self.swapKempeChains(coloring, colorPairPair, kempeChainsToSwap)
-			if self.isColorable(newColoring) :
-				return True
-		return False
+			fullColoring = self.findColoring(self.swapKempeChains(coloring, colorPairPair, kempeChainsToSwap))
+			if fullColoring != None :
+				return kempeChainsToSwap, fullColoring
+		return None
 	#
-	def kempePossibilitiesAllowReduction(self, coloring, colorPairPair, kempeChainSetPossibilities) :
-		for kempeChains in kempeChainSetPossibilities :
-			if not self.kempeChainSetAllowsReduction(coloring, colorPairPair, kempeChains) :
-				return False
-		return True
+	def proveKempePossibilitiesReduction(self, coloring, colorPairPair, kempeChainSetPossibilities) :
+		"""
+		Returns a dictionary from kempeChainSet to (kempeChainsToSwap, fullColoring)
+		"""
+		result = {}
+		for kempeChainSet in kempeChainSetPossibilities :
+			reduction = self.findKempeChainSetReduction(coloring, colorPairPair, kempeChainSet)
+			if reduction == None :
+				return None
+			result[kempeChainSet] = reduction
+		return result
 	#
 	def findKempeArgument(self, coloring) :
+		"""
+		Returns
+		colorPairPair, dictionary from kempeChainSet to (kempeChainsToSwap, fullColoring)
+		"""
 		for colorPairPair in COLOR_PAIR_PAIRS :
 			kempeChainSetPossibilities = self.findKempeChainSetPossibilities(coloring, colorPairPair)
-			if self.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
-				return True
-		return False
+			proof = self.proveKempePossibilitiesReduction(coloring, colorPairPair, kempeChainSetPossibilities)
+			if proof != None :
+				return colorPairPair, proof
+		return None
 	#
 	def isDreducible(self, makeGraphViz=False) :
 		"""
@@ -1152,8 +1168,8 @@ class Configuration :
 		testConfig = copy.deepcopy(self)
 		for coloring in testConfig.generatePossibleBoundaryColorings() :
 			if not testConfig.isColorable(coloring) :
-				kempeArgumentFound = testConfig.findKempeArgument(coloring)
-				if not kempeArgumentFound :
+				kempeArgument = testConfig.findKempeArgument(coloring)
+				if not kempeArgument :
 					if makeGraphViz :
 						open("test.dot", "w+").write(testConfig.toDotGraph())
 						os.system("neato -Tpng test.dot > test.png")
