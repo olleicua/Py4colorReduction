@@ -43,7 +43,9 @@ coloring: a dict from node to color.
   before we use them to see if we can color the rest
   of the nodes in that case.
 
-color pairs:
+color pair pair: a pair of pairs of colors, all four distinct,
+      that are relevant to Kempe chain arguments.  There are three
+      unique color pair pairs: RG/BY, RB/GY, RY/GB.
 
 kempe chain: a set of boundary nodes that (in a given possibility)
       is connected in the imaginary rest of the graph by alternating
@@ -90,8 +92,41 @@ def valuesSortedByKeys(dict) :
 
 # CONSTANTS #
 
-COLOR_PAIRS = ["RB", "RG", "RY"]
 COLORS = ["R", "G", "B", "Y"]
+
+COLOR_PAIR_PAIRS = ((("R","B"),("G","Y")),
+                    (("R","G"),("B","Y")),
+                    (("R","Y"),("B","G")))
+
+def whichColorPair(color, colorPairPair) :
+	"""
+	Returns a colorPair.
+
+	>>> whichColorPair("Y", (("R","B"),("G","Y")))
+	('G', 'Y')
+	"""
+	p1, p2 = colorPairPair
+	return p1 if color in p1 else p2
+
+def colorOpposite(color, colorPairPair) :
+	"""
+	Returns the other color in the same pair.
+
+	>>> colorOpposite("Y", (("R","B"),("G","Y")))
+	'G'
+	"""
+	c1, c2 = whichColorPair(color, colorPairPair)
+	return c1 if color != c1 else c2
+
+def colorPairOpposite(colorPair, colorPairPair) :
+	"""
+	Returns the other color-pair.
+
+	>>> colorPairOpposite(("R","B"), (("R","B"),("G","Y")))
+	('G', 'Y')
+	"""
+	p1, p2 = colorPairPair
+	return p1 if colorPair != p1 else p2
 
 # colorSorted():
 # Or should we just order the colors alphabetically B,G,R,Y?
@@ -818,7 +853,7 @@ class Configuration :
 		return self.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
 				setsOfBoundaryNodesToMerge, newEdges, newNodes)
 	#
-	def findKempeChainSetPossibilities(self, boundaryColoring, colorPair) :
+	def findKempeChainSetPossibilities(self, boundaryColoring, colorPairPair) :
 		"""
 		Automatically adds a boundary if it isn't there already.
 		Results in a large number of sets like, if there are five
@@ -849,14 +884,9 @@ class Configuration :
 		can have its two colors exchanged anytime.
 		...i'll just make it return a list and check whether it gets too large. simpler coding.
 		"""
-		colorPair1 = set(colorPair)
-		colorPair2 = set(COLORS) - colorPair1
-		def whichColorPair(node) :
-			"""Returns a value comparable for equality which determines
-			   an equivalence class between colors."""
-			return boundaryColoring[node] in colorPair1
-		assert len(colorPair1) == len(colorPair2) == 2, \
-				"Kempe chains work with pairs of colors"
+		def sameColorPair(n1, n2) :
+			return whichColorPair(boundaryColoring[n1], colorPairPair) \
+			    == whichColorPair(boundaryColoring[n2], colorPairPair)
 		cycle = self.getBoundaryCycle()
 		result = []
 		def weFoundAResult(kempeChains) :
@@ -913,7 +943,7 @@ class Configuration :
 			if i in kempeChainsSoFar :
 				# finish dealing with the horrible corner case mentioned below
 				weFoundAResult(kempeChainsSoFar)
-			elif whichColorPair(cycle[i - 1]) == whichColorPair(cycle[i]) :
+			elif sameColorPair(cycle[i - 1], cycle[i]) :
 				prevNodeIndex = (i - 1) % len(cycle)
 				prevNodeKempeChain = kempeChainsSoFar[prevNodeIndex]
 				joinKempeChainAndRecur(prevNodeKempeChain)
@@ -921,8 +951,7 @@ class Configuration :
 				priorNodesThatWeCanConnectTo = \
 					       [n for n in range(0, i) \
 						 if n not in occludedSet and \
-						  whichColorPair(cycle[n]) == \
-						  whichColorPair(cycle[i])]
+						  sameColorPair(cycle[n], cycle[i])]
 				kempeChainIDsThatWeCanConnectTo = list(set([ \
 					kempeChainsSoFar[n] for n in priorNodesThatWeCanConnectTo]))
 				#
@@ -937,7 +966,7 @@ class Configuration :
 		startingKempeChains = {0: 0}
 		# Deal with a horrible corner case:
 		for i in reversed(xrange(len(cycle))) :
-			if whichColorPair(cycle[i]) == whichColorPair(cycle[0]) :
+			if sameColorPair(cycle[i], cycle[0]) :
 				startingKempeChains[i] = 0
 			else:
 				break
@@ -1030,40 +1059,28 @@ class Configuration :
 				return False
 		return True
 	#
-	def swapKempeChain(self, coloring, colorPair, kempeChain) :
+	def swapKempeChain(self, coloring, colorPairPair, kempeChain) :
 		result = coloring.copy()
 		for boundaryNode in kempeChain :
-			color = coloring[boundaryNode]
-			if color in colorPair :
-				if color == colorPair[0] :
-					newColor = colorPair[1]
-				else :
-					newColor = colorPair[0]
-			else : # other pair
-				otherPair = list(set(COLORS) - set(colorPair))
-				if color == otherPair[0] :
-					newColor = otherPair[1]
-				else :
-					newColor = otherPair[0]
-			result[boundaryNode] = newColor
+			result[boundaryNode] = colorOpposite(coloring[boundaryNode], colorPairPair)
 		return result
 	#
-	def swapKempeChains(self, coloring, colorPair, kempeChains) :
+	def swapKempeChains(self, coloring, colorPairPair, kempeChains) :
 		newColoring = coloring
 		for kempeChain in kempeChains:
-			newColoring = self.swapKempeChain(newColoring, colorPair, kempeChain)
+			newColoring = self.swapKempeChain(newColoring, colorPairPair, kempeChain)
 		return newColoring
 	#
-	def kempeChainSetAllowsReduction(self, coloring, colorPair, kempeChainSet) :
+	def kempeChainSetAllowsReduction(self, coloring, colorPairPair, kempeChainSet) :
 		for kempeChainsToSwap in powerset(kempeChainSet) :
-			newColoring = self.swapKempeChains(coloring, colorPair, kempeChainsToSwap)
+			newColoring = self.swapKempeChains(coloring, colorPairPair, kempeChainsToSwap)
 			if self.isColorable(newColoring) :
 				return True
 		return False
 	#
-	def kempePossibilitiesAllowReduction(self, coloring, colorPair, kempeChainSetPossibilities) :
+	def kempePossibilitiesAllowReduction(self, coloring, colorPairPair, kempeChainSetPossibilities) :
 		for kempeChains in kempeChainSetPossibilities :
-			if not self.kempeChainSetAllowsReduction(coloring, colorPair, kempeChains) :
+			if not self.kempeChainSetAllowsReduction(coloring, colorPairPair, kempeChains) :
 				return False
 		return True
 	#
@@ -1110,9 +1127,9 @@ class Configuration :
 		for coloring in testConfig.generatePossibleBoundaryColorings() :
 			if not testConfig.isColorable(coloring) :
 				kempeArgumentFound = False
-				for colorPair in COLOR_PAIRS :
-					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPair)
-					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPair, kempeChainSetPossibilities) :
+				for colorPairPair in COLOR_PAIR_PAIRS :
+					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPairPair)
+					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
 						kempeArgumentFound = True
 						break
 				if not kempeArgumentFound :
@@ -1166,9 +1183,9 @@ class Configuration :
 		for coloring in testConfig.generatePossibleBoundaryColoringsTryingCReduction() :
 			if not testConfig.isColorable(coloring) :
 				kempeArgumentFound = False
-				for colorPair in COLOR_PAIRS :
-					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPair)
-					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPair, kempeChainSetPossibilities) :
+				for colorPairPair in COLOR_PAIR_PAIRS :
+					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPairPair)
+					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
 						kempeArgumentFound = True
 						break
 				if not kempeArgumentFound :
