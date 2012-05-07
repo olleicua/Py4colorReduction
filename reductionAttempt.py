@@ -1296,7 +1296,8 @@ class Configuration :
 		html.append("""<p>%d success%s simple and %d require%s Kempe-chains.</p>"""
 				% (numSimpleSuccess, " is" if numSimpleSuccess == 1 else "es are",
 				   numKempeSuccess, 's' if numKempeSuccess == 1 else ''))
-		html.append("""<h2>Easily colorable boundary node color-arrangements</h2>""")
+		if numSimpleSuccess > 0 :
+			html.append("""<h2>Easily colorable boundary node color-arrangements</h2>""")
 		for n, (boundaryColoring, proof) in enumerate(sorted(success, \
 				key=lambda(col,proof):not isinstance(proof,dict))) :
 			base = resultDir+"succ"+str(n)
