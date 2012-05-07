@@ -1435,7 +1435,7 @@ class Configuration :
 		}
 		>>> config.addBoundary()
 		>>> config.toDotGraph().count("\\n")
-		30
+		31
 		"""
 		colorPairPair, kempeChainSet, kempeChainsFlipped = kempe
 		nodesFlipped = frozenset(itertools.chain.from_iterable(kempeChainsFlipped)) #a.k.a. flatten
