@@ -1174,15 +1174,7 @@ class Configuration :
 		or None
 		"""
 		return self.findColoring(coloring) or self.findKempeArgument(coloring)
-		#
-		#yay = testConfig.findColoring(coloring)
-		#if yay == None :
-		#	yay = testConfig.findKempeArgument(coloring)
-		#	if yay == None :
-		#		return None
-		#return yay
 	#
-	#def proveBoundaryColoringsReducable(self, colorings) :
 	def findAndShowProofFor(self, name, colorings, smallerConfig = None) :
 		"""
 		>>> smallerConfig = [None]
