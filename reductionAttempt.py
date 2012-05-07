@@ -1180,6 +1180,9 @@ class Configuration :
 		>>> config = Configuration([Node("a", 4)], [])
 		>>> config.magic("Single node of degree 4", config.generatePossibleBoundaryColorings())
 
+		>>> config = Configuration([Node("a", 5)], [])
+		>>> config.magic("Single node of degree 5", config.generatePossibleBoundaryColorings())
+
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
@@ -1208,9 +1211,7 @@ class Configuration :
 		>>> config.magic("Wilson, exercise 10.4", colorings, smallerConfig[0])
 
 		TODOs:
-		show a failure example like single node of degree 5
 		make a portfolio on my website
-		show the user the node-shrinkages
 
 		not Returns
 		False, boundaryColoring
