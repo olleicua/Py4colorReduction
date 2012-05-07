@@ -830,6 +830,9 @@ class Configuration :
 			nodes = list(set(nodeSet))
 			base = nodes[0]
 			rest = nodes[1:]
+			mainBase = base
+			base = testConfig.renameNode(base.name, '+'.join(node.name for node in nodes))
+			mapFromMainToTestNodes[mainBase] = base
 			for node in rest :
 				assert not self.isEdge(base, node), """
 					Nodes that must be different colors due to an edge
