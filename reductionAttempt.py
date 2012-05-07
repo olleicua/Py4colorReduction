@@ -1109,35 +1109,35 @@ class Configuration :
 		 D.A. Holton/J.Sheehan say that Birkhoff diamond is D-recucible, but
 		 our code shows counterexamples.
 		>>> config = Configuration([Node("a", 4)], [])
-		>>> config.isDreducible()
-		single node of degree 4
+		>>> config.isDreducible() #single node of degree 4
+		True
 		>>> config = Configuration([Node("a", 5)], [])
-		>>> config.isDreducible()
-		single node of degree 5
+		>>> config.isDreducible() #single node of degree 5
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
-		>>> config.isDreducible()
-		triangle
+		>>> config.isDreducible() #triangle
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		birkhoff diamond
+		>>> config.isDreducible() #birkhoff diamond; todo is this true?
+		False
 		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		bernhart diamond
+		>>> config.isDreducible() #bernhart diamond
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isDreducible()
-		example 2 from rsst
+		>>> config.isDreducible() #example 2 from rsst
+		False
 		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isDreducible()
-		example 5 from rsst
+		>>> config.isDreducible() #example 5 from rsst
+		False
 		"""
 		testConfig = copy.deepcopy(self)
 		for coloring in testConfig.generatePossibleBoundaryColorings() :
@@ -1160,35 +1160,35 @@ class Configuration :
 		 nodes, assume the 1st and 3rd boundary nodes are the same node
 		 and thus the same color.
 		>>> config = Configuration([Node("a", 4)], [])
-		>>> config.isCreducible()
-		single node of degree 4
+		>>> config.isCreducible() #single node of degree 4
+		True
 		>>> config = Configuration([Node("a", 5)], [])
-		>>> config.isDreducible()
-		single node of degree 5
+		>>> config.isCreducible() #single node of degree 5
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c")],
 		...                        [("a", "b"), ("b", "c"), ("c", "a")])
-		>>> config.isCreducible()
-		(C) triangle
+		>>> config.isCreducible() #triangle
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) birkhoff diamond
+		>>> config.isCreducible() #birkhoff diamond
+		True
 		>>> config = Configuration([Node("a"), Node("b", 6), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible(True)
-		(C) bernhart diamond
+		>>> config.isCreducible(True) #bernhart diamond
+		False
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d", 6)],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "a"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 2 from rsst
+		>>> config.isCreducible() #example 2 from rsst
+		False
 		>>> config = Configuration([Node("a", 6), Node("b", 6), Node("c"), Node("d"), Node("e")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"),
 		...                         ("d", "e"), ("e", "a"), ("a", "d"), ("b", "d")])
-		>>> config.isCreducible()
-		(C) example 5 from rsst
+		>>> config.isCreducible() #example 5 from rsst
+		False
 		"""
 		testConfig = copy.deepcopy(self)
 		for coloring in testConfig.generatePossibleBoundaryColoringsTryingCReduction() :
