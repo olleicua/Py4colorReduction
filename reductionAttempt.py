@@ -5,6 +5,16 @@ Authors: Isaac Dupree, Elias Zeidan, Sam Auciello
 
 Documentation:
 
+This is a Python implementation of the "reduction" portion
+of the Four Color Theorem.  Its interesting feature compared
+to the C and Coq proof programs is that it can show you what
+it's done using GraphViz and HTML, and that this code might be
+better documented than Robertson et al.'s C code (though then again,
+this file has more lines than their reduce.c).  In either case
+you'll have to learn elsewhere what "Kempe chains" have to do with
+"the four-color theorem", and similar.  Good luck!
+
+
 TYPES, described in prose because Python does not have a way to
 describe them all formally.
 
