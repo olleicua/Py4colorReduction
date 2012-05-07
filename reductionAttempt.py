@@ -1483,6 +1483,33 @@ def showSomeCoolStuff() :
 	                                            [config['b#4'],config['b#6']]],
 	                boxForSmallerConfiguration=smallerConfig)
 	config.findAndShowProofFor("Wilson, exercise 10.4", colorings, smallerConfig[0])
+	#
+	with open("out/index.html", "w+") as f :
+		f.write("""
+			<!DOCTYPE html>
+			<html>
+				<head>
+					<meta charset="utf-8">
+					<title>Some four-color proofs and failures!</title>
+					<style>
+					body { text-align: center; }
+					</style>
+				</head>
+				<body>
+					<h1>Some four-color proofs and failures!</h1>
+					<p><a href="Single%20node%20of%20degree%204/">Single node of degree 4</a></p>
+					<p><a href="Single%20node%20of%20degree%205/">Single node of degree 5</a></p>
+					<p><a href="Birkhoff%20diamond/">Birkhoff diamond</a></p>
+					<p><a href="Wilson,%20exercise%2010.3/">Wilson, exercise 10.3</a></p>
+					<p><a href="Wilson,%20exercise%2010.4/">Wilson, exercise 10.4</a></p>
+					<p>(<q>Wilson</q> is Wilson, Robert A., <i>Graphs, Colourings and the Four-colour Theorem</i>, 2002)</p>
+					<p>See <a href="https://github.com/olleicua/Py4colorReduction">this project on GitHub</a>.</p>
+					<p>Sincerely, <a href="http://www.idupree.com/">Isaac Dupree</a>,
+					<a href="http://cs.marlboro.edu/~ezeidan/">Elias Zeidan</a>
+					and <a href="http://samauciello.com/">Sam Auciello</a>.</p>
+				</body>
+			</html>
+			""")
 
 if __name__ == "__main__" :
 	import doctest
