@@ -68,6 +68,7 @@ kempe chain set possibilities: in the context of a configuration,
 
 """
 
+from __future__ import division
 import itertools, copy, sys, os
 
 # UTILS #
