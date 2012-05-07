@@ -1084,6 +1084,13 @@ class Configuration :
 				return False
 		return True
 	#
+	def findKempeArgument(self, coloring) :
+		for colorPairPair in COLOR_PAIR_PAIRS :
+			kempeChainSetPossibilities = self.findKempeChainSetPossibilities(coloring, colorPairPair)
+			if self.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
+				return True
+		return False
+	#
 	def isDreducible(self, makeGraphViz=False) :
 		"""
 		Return true if the configuration is D-reducible.
@@ -1126,12 +1133,7 @@ class Configuration :
 		testConfig = copy.deepcopy(self)
 		for coloring in testConfig.generatePossibleBoundaryColorings() :
 			if not testConfig.isColorable(coloring) :
-				kempeArgumentFound = False
-				for colorPairPair in COLOR_PAIR_PAIRS :
-					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPairPair)
-					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
-						kempeArgumentFound = True
-						break
+				kempeArgumentFound = testConfig.findKempeArgument(coloring)
 				if not kempeArgumentFound :
 					if makeGraphViz :
 						open("test.dot", "w+").write(testConfig.toDotGraph())
@@ -1182,12 +1184,7 @@ class Configuration :
 		testConfig = copy.deepcopy(self)
 		for coloring in testConfig.generatePossibleBoundaryColoringsTryingCReduction() :
 			if not testConfig.isColorable(coloring) :
-				kempeArgumentFound = False
-				for colorPairPair in COLOR_PAIR_PAIRS :
-					kempeChainSetPossibilities = testConfig.findKempeChainSetPossibilities(coloring, colorPairPair)
-					if testConfig.kempePossibilitiesAllowReduction(coloring, colorPairPair, kempeChainSetPossibilities) :
-						kempeArgumentFound = True
-						break
+				kempeArgumentFound = testConfig.findKempeArgument(coloring)
 				if not kempeArgumentFound :
 					if makeGraphViz :
 						open("test.dot", "w+").write(testConfig.toDotGraph(coloring))
