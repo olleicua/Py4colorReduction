@@ -303,10 +303,11 @@ class Configuration :
 	#
 	def mergeNodes(self, mergeNodeA, mergeNodeB) :
 		"""
-		Merges node B into node A.
+		Merges node B into node A.  Returns the merged node (A).
 		>>> config = Configuration([Node("a"), Node("b", 7)],
 		...                        [("a", "b")])
 		>>> config.mergeNodes(config.nodes["a"], config.nodes["b"])
+		a_5
 		>>> config.nodes
 		{'a': a_5}
 		>>> config.adjacencyList
@@ -314,11 +315,13 @@ class Configuration :
 		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 		...                        [("a", "b"), ("b", "c"), ("c", "d"), ("a", "d")])
 		>>> config.mergeNodes(config.nodes["b"], config.nodes["a"])
+		b_5
 		>>> sorted(config.nodes.items())
 		[('b', b_5), ('c', c_5), ('d', d_5)]
 		>>> sorted(config.adjacencyList)
 		[(b_5, c_5), (b_5, d_5), (c_5, d_5)]
 		>>> config.mergeNodes(config.nodes["b"], config.nodes["c"])
+		b_5
 		>>> sorted(config.adjacencyList)
 		[(b_5, d_5)]
 		"""
@@ -333,13 +336,16 @@ class Configuration :
 		# Loops are forbidden (namely, if there was an edge between A and B) :
 		self.adjacencyList = filter(lambda (a,b): a != b, renamedUniqedAdjacencies)
 		del self.nodes[mergeNodeB.name]
+		return mergeNodeA
 	#
 	def renameNode(self, oldName, newName) :
 		"""
+		(Creates a new node with the new name and returns it.)
 		>>> config = Configuration([Node("a"), Node("b")], [("a", "b")])
 		>>> config.renameNode("a", "a")
-
+		a_5
 		>>> config.renameNode("a", "c")
+		c_5
 		>>> sorted(config.nodes.keys())
 		['b', 'c']
 		>>> config.adjacencyList
@@ -352,7 +358,7 @@ class Configuration :
 		assert oldName in self.nodes, \
 			"renaming a nonexistent node %s to %s" % (oldName, newName)
 		if oldName == newName:
-			return
+			return self.nodes[oldName]
 		assert newName not in self.nodes, \
 			"renaming %s to an existing node name %s" % (oldName, newName)
 		oldNode = self.nodes[oldName]
@@ -362,6 +368,7 @@ class Configuration :
 		self.nodes[newName] = newNode
 		def fix(node): return newNode if node == oldNode else node
 		self.adjacencyList = [tuple(sorted((fix(a),fix(b)))) for a,b in self.adjacencyList]
+		return newNode
 	#
 	def isEdge(self, a, b) :
 		"""
