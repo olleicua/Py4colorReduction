@@ -69,7 +69,7 @@ kempe chain set possibilities: in the context of a configuration,
 """
 
 from __future__ import division
-import itertools, copy, sys, os
+import math, itertools, copy, sys, os, subprocess, shutil
 
 # UTILS #
 
@@ -1134,6 +1134,173 @@ class Configuration :
 			if proof != None :
 				return colorPairPair, proof
 		return None
+	#
+	def proveBoundaryColoringReducable(self, coloring) :
+		"""
+		Returns
+		fullColoring
+		or (colorPairPair, dictionary from kempeChainSet to (kempeChainsToSwap, fullColoring))
+		or None
+		"""
+		return self.findColoring(coloring) or self.findKempeArgument(coloring)
+		#
+		#yay = testConfig.findColoring(coloring)
+		#if yay == None :
+		#	yay = testConfig.findKempeArgument(coloring)
+		#	if yay == None :
+		#		return None
+		#return yay
+	#
+	#def proveBoundaryColoringsReducable(self, colorings) :
+	def magic(self, name, colorings, smallerConfig = None) :
+		"""
+		>>> smallerConfig = [None]
+
+		>>> config = Configuration([Node("a", 4)], [])
+		>>> config.magic("Single node of degree 4", config.generatePossibleBoundaryColorings())
+
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
+		...                        [("a", "b"), ("b", "c"), ("c", "d"),
+		...                         ("d", "a"), ("b", "d")])
+		>>> colorings = list(config.generatePossibleBoundaryColoringsTryingCReduction(
+		...                 boxForSmallerConfiguration=smallerConfig))
+		>>> config.magic("Birkhoff diamond", colorings, smallerConfig[0])
+
+		>>> config = Configuration([Node("a"), Node("b"), Node("c"), Node("d",6), Node("e",6), Node("f",6)],
+		...                       [("a","b"),("a","c"),("a","d"),("a","e"),("a","f"),
+		...                        ("b","c"),("c","d"),("d","e"),("e","f"),("f","b")])
+		>>> config.addBoundary()
+		>>> colorings = list(config.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
+		...                 setsOfBoundaryNodesToMerge=[[config['b#0'],config['b#2'],config['b#4'],config['b#6']]],
+		...                 boxForSmallerConfiguration=smallerConfig))
+		>>> config.magic("Wilson, exercise 10.3", colorings, smallerConfig[0])
+
+		>>> config = Configuration([Node("a",8), Node("b"), Node("c"), Node("d"), Node("e"), Node("f")],
+		...                       [("a","b"),("a","c"),("a","d"),("a","e"),("a","f"),
+		...                        ("b","c"),("c","d"),("d","e"),("e","f")])
+		>>> config.addBoundary()
+		>>> colorings = config.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
+		...                 setsOfBoundaryNodesToMerge=[[config['b#0'],config['b#7']],
+		...                                             [config['b#1'],config['b#3']],
+		...                                             [config['b#4'],config['b#6']]],
+		...                 boxForSmallerConfiguration=smallerConfig)
+		>>> config.magic("Wilson, exercise 10.4", colorings, smallerConfig[0])
+
+		TODOs:
+		show a failure example like single node of degree 5
+		make a portfolio on my website
+		show the user the node-shrinkages
+
+		not Returns
+		False, boundaryColoring
+		or
+		True, dictionary* from boundaryColoring to
+		        fullColoring or
+		        (colorPairPair, dictionary from kempeChainSet to (kempeChainsToSwap, fullColoring))
+		*...actually a list of pairs, because boundaryColoring is a dictionary
+		    and dictionaries can't have dictionaries as keys because there's no
+		    frozendict type.
+		"""
+		success = []
+		failure = []
+		colorings = list(colorings)
+		for coloring in colorings :
+			proof = self.proveBoundaryColoringReducable(coloring)
+			if proof != None :
+				success.append((coloring, proof))
+			else :
+				failure.append(coloring)
+		def usesKempe(proof): return not isinstance(proof,dict)
+		numColorings = len(colorings)
+		numFailure = len(failure)
+		numSimpleSuccess = len(list(filter(lambda (bc,p): not usesKempe(p), success)))
+		numKempeSuccess = len(list(filter(lambda (bc,p): usesKempe(p), success)))
+		#
+		resultDir = "out/%s/" % name
+		try: shutil.rmtree(resultDir)
+		except OSError: pass
+		try: os.makedirs(resultDir)
+		except OSError: pass
+		html = []
+		html.append("""
+			<!DOCTYPE html>
+			<html>
+				<head>
+					<meta charset="utf-8">
+					<title>%s</title>
+					<style>
+					body { text-align: center; }
+					.simpleColor { display: inline-block; }
+					.successesBelow { margin: 13em 0; }
+					</style>
+				</head>
+				<body>
+					<h1>%s</h1>
+			""" % (name, name))
+		def makeDot(basePath, config, coloring, kempe = (None, frozenset(), frozenset())) :
+			with open(basePath+".dot", "w+") as f :
+				f.write(config.toDotGraph(coloring, kempe))
+			subprocess.call(["neato", "-Tpng", basePath+".dot", "-o"+basePath+".png"])
+		makeDot(resultDir+"config", self, {})
+		if smallerConfig != None :
+			makeDot(resultDir+"smallerConfig", smallerConfig, {})
+		def intro() :
+			if smallerConfig == None :
+				html.append("""<p>We color the boundary nodes with all %d possible color combinations,
+						modulo equivalence of colors.</p>""" % len(colorings))
+			else :
+				html.append("""<p>We color the boundary nodes with all %d possible color combinations,
+						modulo equivalence of colors, that are consistent with this smaller
+						configuration:</p>""" % len(colorings))
+				html.append("""<p><img src="smallerConfig.png" /></p>""")
+		if len(failure) :
+			html.append("""<p>We <strong>fail</strong> to prove this configuration colorable.</p>""")
+			html.append("""<p><img src="config.png" /></p>""")
+			intro()
+			html.append("""<p>We see no way to color the configuration given
+					any of the %d following boundary rings%s:</p>"""
+					% (len(failure),
+					   " (though other rings, listed below, work)" if len(success) else ""))
+			for n, boundaryColoring in enumerate(failure) :
+				base = resultDir+"fail"+str(n)
+				makeDot(base, self, boundaryColoring)
+				html.append("""<h3 class="simpleColor"><img src="fail%d.png" /></h3>""" % n)
+			if len(success) :
+				html.append("""<hr class="successesBelow" />""")
+				html.append("""<p>In case you were interested in the successful parts,</p>""")
+		else:
+			html.append("""<p>We prove this configuration colorable:</p>""")
+			html.append("""<p><img src="config.png" /></p>""")
+			intro()
+		html.append("""<p>%d success%s simple and %d require%s Kempe-chains.</p>"""
+				% (numSimpleSuccess, " is" if numSimpleSuccess == 1 else "es are",
+				   numKempeSuccess, 's' if numKempeSuccess == 1 else ''))
+		html.append("""<h2>Easily colorable boundary node color-arrangements</h2>""")
+		for n, (boundaryColoring, proof) in enumerate(sorted(success, \
+				key=lambda(col,proof):not isinstance(proof,dict))) :
+			base = resultDir+"succ"+str(n)
+			if not usesKempe(proof) :
+				fullColoring = proof
+				makeDot(base, self, fullColoring)
+				html.append("""<h3 class="simpleColor"><img src="succ%d.png" /></h3>""" % n)
+			else :
+				colorPairPair, kempeChainSetReductions = proof
+				(c1, c2), (c3, c4) = colorPairPair
+				makeDot(base, self, boundaryColoring)
+				html.append("""<hr /><h2>Kempe chain possibilities for %s%s/%s%s on<br /><img src="succ%d.png" /></h2><p>with color-flipped boundary nodes marked with heavy dashes. (Apologies for the kempe chain edges passing through things visually.)</p>""" \
+						 % (c1, c2, c3, c4, n))
+				os.mkdir(base)
+				for n2, (kempeChainSet, (kempeChainsFlipped, fullColoring)) in \
+						enumerate(sorted(kempeChainSetReductions.items())) :
+					base2 = base+"/"+str(n2)
+					makeDot(base2, self, fullColoring, (colorPairPair, kempeChainSet, kempeChainsFlipped))
+					html.append("""<p class="simpleColor"><img src="succ%d/%d.png" /></p>""" % (n, n2))
+		html.append("""
+				</body>
+			</html>
+			""")
+		with open(resultDir+"index.html", "w+") as f :
+			f.write('\n'.join(html))
 	#
 	def isDreducible(self, makeGraphViz=False) :
 		"""
