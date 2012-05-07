@@ -355,13 +355,13 @@ class Configuration :
 			return
 		assert newName not in self.nodes, \
 			"renaming %s to an existing node name %s" % (oldName, newName)
-		node = self.nodes[oldName]
+		oldNode = self.nodes[oldName]
+		newNode = copy.copy(oldNode)
+		newNode.name = newName
 		del self.nodes[oldName]
-		node.name = newName
-		self.nodes[newName] = node
-		# adjacencyList has nodes, not names, so it doesn't have to be changed
-		# BUT WAIT its consistency will be broken because of the ordering
-		self.adjacencyList = [tuple(sorted(pair)) for pair in self.adjacencyList]
+		self.nodes[newName] = newNode
+		def fix(node): return newNode if node == oldNode else node
+		self.adjacencyList = [tuple(sorted((fix(a),fix(b)))) for a,b in self.adjacencyList]
 	#
 	def isEdge(self, a, b) :
 		"""
