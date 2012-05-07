@@ -1450,20 +1450,20 @@ class Configuration :
 
 def showSomeCoolStuff() :
 	smallerConfig = [None]
-
+	#
 	config = Configuration([Node("a", 4)], [])
 	config.findAndShowProofFor("Single node of degree 4", config.generatePossibleBoundaryColorings())
-
+	#
 	config = Configuration([Node("a", 5)], [])
 	config.findAndShowProofFor("Single node of degree 5", config.generatePossibleBoundaryColorings())
-
+	#
 	config = Configuration([Node("a"), Node("b"), Node("c"), Node("d")],
 	                       [("a", "b"), ("b", "c"), ("c", "d"),
 	                        ("d", "a"), ("b", "d")])
 	colorings = list(config.generatePossibleBoundaryColoringsTryingCReduction(
 	                boxForSmallerConfiguration=smallerConfig))
 	config.findAndShowProofFor("Birkhoff diamond", colorings, smallerConfig[0])
-
+	#
 	config = Configuration([Node("a"), Node("b"), Node("c"), Node("d",6), Node("e",6), Node("f",6)],
 	                      [("a","b"),("a","c"),("a","d"),("a","e"),("a","f"),
 	                       ("b","c"),("c","d"),("d","e"),("e","f"),("f","b")])
@@ -1472,7 +1472,7 @@ def showSomeCoolStuff() :
 	                setsOfBoundaryNodesToMerge=[[config['b#0'],config['b#2'],config['b#4'],config['b#6']]],
 	                boxForSmallerConfiguration=smallerConfig))
 	config.findAndShowProofFor("Wilson, exercise 10.3", colorings, smallerConfig[0])
-
+	#
 	config = Configuration([Node("a",8), Node("b"), Node("c"), Node("d"), Node("e"), Node("f")],
 	                      [("a","b"),("a","c"),("a","d"),("a","e"),("a","f"),
 	                       ("b","c"),("c","d"),("d","e"),("e","f")])
