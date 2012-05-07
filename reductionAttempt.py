@@ -810,7 +810,10 @@ class Configuration :
 		cycle = self.getBoundaryCycle()
 		return self.findColorings(skipSameUpToColorRenaming = True, nodesToColor = cycle)
 	def generatePossibleBoundaryColoringsGivenSmallerConfiguration(self,
-			setsOfBoundaryNodesToMerge = [], newEdges = [], newNodes = []) :
+			setsOfBoundaryNodesToMerge = [], newEdges = [], newNodes = [],
+			boxForSmallerConfiguration = None  #pass c=[None] and access c[0]
+			# after. You have to force the generator first! (e.g. pass it to list()) - TODO improve this.
+			) :
 		cycle = self.getBoundaryCycle()
 		testConfig = Configuration(
 				cycle,
@@ -827,7 +830,7 @@ class Configuration :
 		for a,b in newEdges :
 			testConfig.addEdge(a, b)
 		for nodeSet in setsOfBoundaryNodesToMerge :
-			nodes = list(set(nodeSet))
+			nodes = sorted(set(nodeSet))
 			base = nodes[0]
 			rest = nodes[1:]
 			mainBase = base
@@ -842,6 +845,8 @@ class Configuration :
 				mapFromMainToTestNodes[node] = base
 		assert len(testConfig.nodes) < len(self.nodes), \
 			"This config isn't smaller, so the math proof usefulness of this boundary-coloring is nil."
+		if boxForSmallerConfiguration != None :
+			boxForSmallerConfiguration[0] = testConfig
 		# TODO can we also test the planarity of this test config, and
 		# the original-nodes-are-still-all-connected-to-the-infinite-region
 		# -ness of it?
@@ -853,7 +858,10 @@ class Configuration :
 				coloring[main] = testColoring[test]
 			yield coloring
 	#
-	def generatePossibleBoundaryColoringsTryingCReduction(self) :
+	def generatePossibleBoundaryColoringsTryingCReduction(self,
+			boxForSmallerConfiguration = None  #pass c=[None] and access c[0]
+			# after. You have to force the generator first! (e.g. pass it to list()) - TODO improve this.
+			) :
 		cycle = self.getBoundaryCycle()
 		newNodes = []
 		newEdges = []
@@ -870,7 +878,7 @@ class Configuration :
 			setsOfBoundaryNodesToMerge.append([cycle[0], cycle[2]])
 		#
 		return self.generatePossibleBoundaryColoringsGivenSmallerConfiguration(
-				setsOfBoundaryNodesToMerge, newEdges, newNodes)
+				setsOfBoundaryNodesToMerge, newEdges, newNodes, boxForSmallerConfiguration)
 	#
 	def findKempeChainSetPossibilities(self, boundaryColoring, colorPairPair) :
 		"""
@@ -1270,7 +1278,7 @@ class Configuration :
 			opts = []
 			if node in coloring :
 				opts.append('fillcolor="%s"' % colorToCSSColor(coloring[node]))
-			if isinstance(node, BoundaryNode) :
+			if isinstance(node, BoundaryNode) and node.cycleNumber != None :
 				opts.append('style="filled,dashed"')
 				opts.append('pos="%f,%f"' % (
 					2 + 5*math.cos(math.pi/2 - 2*math.pi*(node.cycleNumber/numBoundaryNodes)),
