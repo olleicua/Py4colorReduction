@@ -1,5 +1,10 @@
 """
 
+License: MIT
+Authors: Isaac Dupree, Elias Zeidan, Sam Auciello
+
+Documentation:
+
 TYPES, described in prose because Python does not have a way to
 describe them all formally.
 
