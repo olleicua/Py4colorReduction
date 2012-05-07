@@ -90,6 +90,15 @@ def valuesSortedByKeys(dict) :
 		result.append(dict[k])
 	return result
 
+# from http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+def mkdir_p(path):
+	try:
+		os.makedirs(path)
+	except OSError as exc:
+		if exc.errno != errno.EEXIST:
+			raise
+
+
 # CONSTANTS #
 
 COLORS = ["R", "G", "B", "Y"]
