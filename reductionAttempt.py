@@ -900,7 +900,23 @@ class Configuration :
 		            toList(config.findKempeChainSetPossibilities(coloring, (r, b)))
 		...     print r+y+'/'+g+b+':', \
 		            toList(config.findKempeChainSetPossibilities(coloring, (r, y)))
-		..yeah.
+		['R', 'G', 'R', 'G'] :
+		RG/BY: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		RB/GY: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		RY/GB: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		['R', 'G', 'R', 'B'] :
+		RG/BY: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		RB/GY: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		RY/GB: [[[b#0], [b#1], [b#2], [b#3]], [[b#0], [b#1, b#3], [b#2]], [[b#0, b#2], [b#1], [b#3]]]
+		['R', 'G', 'B', 'G'] :
+		RG/BY: [[[b#0], [b#1, b#2, b#3]]]
+		RB/GY: [[[b#0], [b#1, b#2, b#3]]]
+		RY/GB: [[[b#0], [b#1, b#2, b#3]]]
+		['R', 'G', 'B', 'Y'] :
+		RG/BY: [[[b#0], [b#1, b#2, b#3]]]
+		RB/GY: [[[b#0], [b#1, b#2, b#3]]]
+		RY/GB: [[[b#0], [b#1, b#2, b#3]]]
+
 
 		[set([a, c]), set([b]), set([d, e])]
 		{a: 0, b: 1, c: 0, d: 2, e: 2}
